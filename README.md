@@ -53,10 +53,7 @@ authenticated with your own `sp_dc` session cookie. Please be aware of the follo
 **Library and offline**
 - Favorites and playlists stored on your device
 - Audio cache (configurable size) so a replayed song starts instantly
-<<<<<<< HEAD
 - Lyrics and Spotify Canvas are cached too, so they load instantly and work offline (each cache can be cleared in *Settings → Storage*)
-=======
->>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
 - Permanent downloads, plus a "Cache" card in the library with fully downloaded songs
 - Optional: send your listening history to your YouTube Music account to improve recommendations (off by default)
 
