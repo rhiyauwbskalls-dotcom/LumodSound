@@ -1,4 +1,0 @@
-# Copia este archivo a local.properties (no se sube a Git) y rellena tus claves.
-# Last.fm: créalas gratis en https://www.last.fm/api/account/create
-LASTFM_API_KEY=11ee6f2f16adf43b8b8070dbed5d6fde
-LASTFM_SECRET=a2d75580f39b0b96b3a9675a6f55009b
