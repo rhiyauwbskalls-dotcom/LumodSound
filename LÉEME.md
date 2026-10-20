@@ -53,10 +53,7 @@ autenticada con tu propia cookie de sesión `sp_dc`. Ten en cuenta lo siguiente:
 **Biblioteca y modo sin conexión**
 - Favoritos y listas de reproducción guardados en tu dispositivo
 - Caché de audio (de tamaño configurable) para que una canción repetida empiece al instante
-<<<<<<< HEAD
 - Las letras y el Canvas de Spotify también se guardan en caché: cargan al instante y funcionan sin internet (cada caché se borra en *Ajustes → Almacenamiento*)
-=======
->>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
 - Descargas permanentes, además de una tarjeta «Caché» en la biblioteca con las canciones descargadas por completo
 - Opcional: enviar tu historial de escucha a tu cuenta de YouTube Music para mejorar las recomendaciones (desactivado por defecto)
 
