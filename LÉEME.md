@@ -73,6 +73,7 @@ autenticada con tu propia cookie de sesión `sp_dc`. Ten en cuenta lo siguiente:
 
 ## Capturas de pantalla
 
+<<<<<<< HEAD
 <p align="center">
   <img src="screenshots/player.jpg" width="260" alt="Pantalla del reproductor">
   <img src="screenshots/lyrics.jpg" width="260" alt="Pantalla de letras sincronizadas">
@@ -123,6 +124,57 @@ abierta durante periodos largos.
 Se agradece ayuda con cualquiera de estas tareas:
 
 - [x] Añadir capturas de pantalla a este README
+=======
+_Próximamente. ¡Se agradecen contribuciones con capturas de pantalla!_
+
+## Requisitos
+
+- Android 8.1 (API 27) o superior
+- Para compilar: Android Studio Koala o superior, JDK 17
+
+## Compilación
+
+1. Clona el repositorio y abre la carpeta en Android Studio.
+2. Deja que Gradle se sincronice (Android Studio descarga por sí mismo los archivos faltantes del wrapper de Gradle).
+3. Ejecuta la configuración `app` en un dispositivo o emulador.
+
+**Last.fm (opcional):** las claves de Last.fm no están en el código. Crea una cuenta de API gratis en
+<<<<<<< HEAD
+<https://www.last.fm/api/account/create>, copia `lastfm.properties.example` a `app/src/main/assets/lastfm.properties` y rellena
+=======
+<https://www.last.fm/api/account/create>, copia `local.properties.example` a `local.properties` y rellena
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+`LASTFM_API_KEY` y `LASTFM_SECRET`. Sin ellas la app funciona igual, pero el scrobbling de Last.fm no estará disponible.
+Para la compilación con GitHub Actions, añade esos mismos dos nombres como secretos del repositorio (*Settings → Secrets and variables → Actions*).
+
+**¿Sin computadora?** Sube el proyecto a GitHub. El workflow de `.github/workflows/build.yml` compila un APK de depuración:
+*Actions → Build APK → Artifacts*.
+
+Si la reproducción o la exploración dejan de funcionar de repente, probablemente YouTube cambió algo. Sube la versión de
+`com.github.TeamNewPipe:NewPipeExtractor` en `app/build.gradle.kts` y vuelve a intentarlo.
+
+## Privacidad y seguridad
+
+- Sonaris **no incluye librerías de analíticas, anuncios ni reporte de fallos**, y no tiene servidor propio.
+- La app se comunica directamente con los servicios que usas: YouTube/Google, LRCLIB y (solo si los activas) Last.fm, Discord,
+  Spotify y el proveedor de IA que configures. La traducción en el dispositivo descarga modelos de idioma la primera vez que la usas.
+- Las credenciales de Discord y Spotify se cifran en reposo con AES-256-GCM usando una clave guardada en el Android Keystore.
+- Las cookies de tu sesión de YouTube Music se guardan en el almacenamiento privado de la app **sin cifrado adicional**, así que alguien con
+  acceso root a tu teléfono podría leerlas. Cerrar sesión las elimina.
+- Nunca compartas tus cookies, tokens o claves de API en issues ni capturas de pantalla.
+
+## Consejos de batería
+
+Las letras, las pantallas animadas y la reproducción en segundo plano consumen algo de batería. Si notas un consumo alto, abre
+*Ajustes → Batería* dentro de la app para ir a los ajustes de batería de Android para Sonaris, y evita dejar la pantalla de letras
+abierta durante periodos largos.
+
+## Estado del proyecto y hoja de ruta
+
+Se agradece ayuda con cualquiera de estas tareas:
+
+- [ ] Añadir capturas de pantalla a este README
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
 - [ ] Rediseñar las pantallas de Biblioteca y Búsqueda para que coincidan con el resto de la app
 - [ ] Mover las cadenas de la interfaz en español escritas directamente en el código a `strings.xml` y añadir traducciones
 - [ ] Firma de versiones y releases etiquetados
