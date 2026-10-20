@@ -1,0 +1,30 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Claves y firmas: nunca subir
+*.jks
+*.keystore
+keystore.properties
+.env
+google-services.json
+
+# Compilados
+*.apk
+*.aab
+/app/release
+.kotlin/
+
+# Claves de Last.fm (local)
+/app/src/main/assets/lastfm.properties
+build/
+.platform/
+.gradle/
+local.properties
