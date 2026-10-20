@@ -1,6 +1,7 @@
 package com.sonaris.app.data
 
 import android.content.Context
+<<<<<<< HEAD
 import java.util.Properties
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,6 +56,51 @@ class LastfmStore private constructor(context: Context) {
     private fun loadWith(apiKey: String, secret: String) = LastfmSettings(
         apiKey = apiKey,
         secret = secret,
+=======
+import com.sonaris.app.BuildConfig
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+
+/**
+ * Credenciales de la API de Last.fm que usa la app (la pantalla de Last.fm no las pide). NO van en el código:
+ * se inyectan al compilar desde LASTFM_API_KEY / LASTFM_SECRET (variable de entorno o local.properties).
+ * Se crean gratis en https://www.last.fm/api/account/create. Si faltan, Last.fm queda sin credenciales.
+ */
+val DEFAULT_LASTFM_API_KEY: String get() = BuildConfig.LASTFM_API_KEY
+val DEFAULT_LASTFM_SECRET: String get() = BuildConfig.LASTFM_SECRET
+
+data class LastfmSettings(
+    val apiKey: String = "",
+    val secret: String = "",
+    val sessionKey: String? = null,
+    val username: String? = null,
+    /** Mandar cada canción escuchada (scrobble). */
+    val enabled: Boolean = true,
+    /** Avisar de la canción que suena ahora. */
+    val nowPlaying: Boolean = true,
+    /** Resultado del último aviso, para mostrarlo en Ajustes. */
+    val lastResult: String? = null
+) {
+    val hasCredentials: Boolean get() = apiKey.isNotBlank() && secret.isNotBlank()
+    val connected: Boolean get() = !sessionKey.isNullOrBlank()
+}
+
+/**
+ * Cuenta de Last.fm y opciones. Es único para toda la app (Ajustes y el servicio de reproducción comparten el
+ * mismo flujo). El secreto y la clave de sesión van cifrados (ver [TokenCipher]); si el cifrado falla no se guarda nada.
+ */
+class LastfmStore private constructor(context: Context) {
+    private val prefs = context.applicationContext.getSharedPreferences("lastfm", Context.MODE_PRIVATE)
+
+    private val _settings = MutableStateFlow(load())
+    val settings: StateFlow<LastfmSettings> = _settings.asStateFlow()
+
+    private fun load() = LastfmSettings(
+        apiKey = DEFAULT_LASTFM_API_KEY,
+        secret = DEFAULT_LASTFM_SECRET,
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
         sessionKey = prefs.getString("session_enc", null)?.let(TokenCipher::decrypt)?.takeIf { it.isNotBlank() },
         username = prefs.getString("username", null),
         enabled = prefs.getBoolean("enabled", true),

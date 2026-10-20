@@ -87,7 +87,11 @@ _Coming soon. Contributions with screenshots are welcome!_
 3. Run the `app` configuration on a device or emulator.
 
 **Last.fm (optional):** the Last.fm keys are not in the code. Create a free API account at
+<<<<<<< HEAD
 <https://www.last.fm/api/account/create>, copy `lastfm.properties.example` to `app/src/main/assets/lastfm.properties` and fill in
+=======
+<https://www.last.fm/api/account/create>, copy `local.properties.example` to `local.properties` and fill in
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
 `LASTFM_API_KEY` and `LASTFM_SECRET`. Without them the app still works, but Last.fm scrobbling stays unavailable.
 For the GitHub Actions build, add the same two names as repository secrets (*Settings → Secrets and variables → Actions*).
 
