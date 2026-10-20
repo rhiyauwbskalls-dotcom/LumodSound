@@ -73,7 +73,6 @@ authenticated with your own `sp_dc` session cookie. Please be aware of the follo
 
 ## Screenshots
 
-<<<<<<< HEAD
 <p align="center">
   <img src="screenshots/player.jpg" width="260" alt="Player screen">
   <img src="screenshots/lyrics.jpg" width="260" alt="Synced lyrics screen">
@@ -124,57 +123,6 @@ open for long periods.
 Help is welcome with any of these:
 
 - [x] Add screenshots to this README
-=======
-_Coming soon. Contributions with screenshots are welcome!_
-
-## Requirements
-
-- Android 8.1 (API 27) or newer
-- To build: Android Studio Koala or newer, JDK 17
-
-## Build
-
-1. Clone the repository and open the folder in Android Studio.
-2. Let Gradle sync (Android Studio downloads the missing Gradle wrapper files by itself).
-3. Run the `app` configuration on a device or emulator.
-
-**Last.fm (optional):** the Last.fm keys are not in the code. Create a free API account at
-<<<<<<< HEAD
-<https://www.last.fm/api/account/create>, copy `lastfm.properties.example` to `app/src/main/assets/lastfm.properties` and fill in
-=======
-<https://www.last.fm/api/account/create>, copy `local.properties.example` to `local.properties` and fill in
->>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
-`LASTFM_API_KEY` and `LASTFM_SECRET`. Without them the app still works, but Last.fm scrobbling stays unavailable.
-For the GitHub Actions build, add the same two names as repository secrets (*Settings → Secrets and variables → Actions*).
-
-**No computer?** Push the project to GitHub. The workflow in `.github/workflows/build.yml` builds a debug APK:
-*Actions → Build APK → Artifacts*.
-
-If playback or browsing suddenly stops working, YouTube probably changed something. Bump the version of
-`com.github.TeamNewPipe:NewPipeExtractor` in `app/build.gradle.kts` and try again.
-
-## Privacy and security
-
-- Sonaris has **no analytics, ads or crash-reporting libraries**, and no server of its own.
-- The app talks directly to the services you use: YouTube/Google, LRCLIB, and (only if you enable them) Last.fm, Discord,
-  Spotify and the AI provider you configure. On-device translation downloads language models the first time you use it.
-- Discord and Spotify credentials are encrypted at rest with AES-256-GCM using a key kept in the Android Keystore.
-- Your YouTube Music session cookies are kept in the app's private storage **without extra encryption**, so someone with
-  root access to your phone could read them. Logging out deletes them.
-- Never share your cookies, tokens or API keys in issues or screenshots.
-
-## Battery tips
-
-Lyrics, animated screens and background playback all use some battery. If you notice high usage, open
-*Settings → Battery* inside the app to jump to Android's battery settings for Sonaris, and avoid leaving the lyrics screen
-open for long periods.
-
-## Project status and roadmap
-
-Help is welcome with any of these:
-
-- [ ] Add screenshots to this README
->>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
 - [ ] Redesign the Library and Search screens to match the rest of the app
 - [ ] Move the hard-coded Spanish UI strings to `strings.xml` and add translations
 - [ ] Release signing and tagged releases
