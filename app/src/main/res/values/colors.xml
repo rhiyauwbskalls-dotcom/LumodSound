@@ -1,4 +1,8 @@
 <resources>
+<<<<<<< HEAD
     <color name="ic_launcher_background">#CC101A</color>
+=======
+    <color name="ic_launcher_background">#E53935</color>
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
     <color name="window_background">#F6F6F6</color>
 </resources>

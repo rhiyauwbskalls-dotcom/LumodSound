@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.History
+<<<<<<< HEAD
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.MusicNote
@@ -252,6 +253,211 @@ fun SettingsScreen(
                 icon = Icons.Default.Info,
                 title = "Acerca de Sonaris",
                 onClick = onAbout,
+=======
+import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.sonaris.app.data.DiscordSettings
+import com.sonaris.app.data.LastfmSettings
+import com.sonaris.app.data.SpotifySettings
+import com.sonaris.app.data.TranslateEngine
+import com.sonaris.app.data.TranslationSettings
+import com.sonaris.app.data.HistorySync
+
+/** Ajustes generales de la app, agrupados por secciones. Aquí se van sumando las opciones nuevas. */
+@Composable
+fun SettingsScreen(
+    loggedIn: Boolean,
+    discord: DiscordSettings,
+    lastfm: LastfmSettings,
+    spotify: SpotifySettings,
+    translation: TranslationSettings,
+    onAccount: () -> Unit,
+    onDiscord: () -> Unit,
+    onLastfm: () -> Unit,
+    onSpotify: () -> Unit,
+    onTranslation: () -> Unit,
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // Caché de canciones: uso actual, límite elegido y los diálogos de ajuste / borrado
+    var cacheRefresh by remember { mutableIntStateOf(0) }
+    var cacheMaxMb by remember { mutableIntStateOf(MediaCache.maxMb(context)) }
+    var showSizeDialog by remember { mutableStateOf(false) }
+    var showClearDialog by remember { mutableStateOf(false) }
+    var showClearDownloads by remember { mutableStateOf(false) }
+    var historySync by remember { mutableStateOf(HistorySync.isEnabled(context)) }
+    var crossfadeOn by remember { mutableStateOf(Crossfade.isEnabled(context)) }
+    var crossfadeSec by remember { mutableIntStateOf(Crossfade.seconds(context)) }
+    val cacheUsed by produceState(0L, cacheRefresh) {
+        value = withContext(Dispatchers.IO) {
+            try {
+                MediaCache.usedBytes(context)
+            } catch (e: Exception) {
+                0L
+            }
+        }
+    }
+
+    val downloadsUsed by produceState(0L, cacheRefresh) {
+        value = withContext(Dispatchers.IO) {
+            try {
+                Downloads.usedBytes(context)
+            } catch (e: Exception) {
+                0L
+            }
+        }
+    }
+
+    SettingsScaffold(title = "Ajustes", onBack = onBack) {
+        SettingsGroup("Cuenta") {
+            SettingsItem(
+                icon = Icons.Default.LibraryMusic,
+                title = "YouTube Music",
+                value = if (loggedIn) "Conectada" else "Sin conectar",
+                onClick = onAccount,
+                trailing = { ChevronIcon() }
+            )
+        }
+        SettingsGroup("Integraciones") {
+            SettingsItem(
+                icon = Icons.Default.Headphones,
+                title = "Discord",
+                value = when {
+                    !discord.connected -> "Sin conectar"
+                    discord.enabled -> discord.username ?: "Activado"
+                    else -> "Desactivado"
+                },
+                onClick = onDiscord,
+                trailing = { ChevronIcon() }
+            )
+            GroupDivider()
+            SettingsItem(
+                icon = Icons.Default.MusicNote,
+                title = "Last.fm",
+                value = when {
+                    !lastfm.connected -> "Sin conectar"
+                    lastfm.enabled -> lastfm.username ?: "Activado"
+                    else -> "Desactivado"
+                },
+                onClick = onLastfm,
+                trailing = { ChevronIcon() }
+            )
+            GroupDivider()
+            SettingsItem(
+                icon = Icons.Default.Album,
+                title = "Spotify",
+                value = when {
+                    !spotify.connected -> "Sin conectar"
+                    spotify.lyrics || spotify.canvas -> "Conectado"
+                    else -> "Desactivado"
+                },
+                onClick = onSpotify,
+                trailing = { ChevronIcon() }
+            )
+        }
+        SettingsGroup("Apariencia") {
+            SettingsSwitchItem(
+                icon = Icons.Default.Palette,
+                title = "Colores del sistema (Material You)",
+                checked = ThemeSettings.dynamicColor,
+                enabled = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S,
+                onChange = { ThemeSettings.setDynamicColor(context, it) }
+            )
+        }
+        SettingsGroup("Reproducción") {
+            SettingsItem(
+                icon = Icons.Default.GraphicEq,
+                title = "Crossfade",
+                value = if (crossfadeOn) "$crossfadeSec s" else "Desactivado",
+                onClick = {
+                    crossfadeOn = !crossfadeOn
+                    Crossfade.setEnabled(context, crossfadeOn)
+                },
+                trailing = { Switch(checked = crossfadeOn, onCheckedChange = null) }
+            )
+            if (crossfadeOn) {
+                GroupDivider()
+                androidx.compose.foundation.layout.Column(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        "Duración del cruce: $crossfadeSec s",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Slider(
+                        value = crossfadeSec.toFloat(),
+                        onValueChange = { crossfadeSec = it.roundToInt() },
+                        onValueChangeFinished = { Crossfade.setSeconds(context, crossfadeSec) },
+                        valueRange = Crossfade.MIN_SEC.toFloat()..Crossfade.MAX_SEC.toFloat(),
+                        steps = Crossfade.MAX_SEC - Crossfade.MIN_SEC - 1
+                    )
+                }
+            }
+        }
+        SettingsGroup("Letras") {
+            SettingsItem(
+                icon = Icons.Default.Translate,
+                title = "Letras traducción",
+                value = if (translation.engine == TranslateEngine.AI) translation.provider.label else "ML Kit",
+                onClick = onTranslation,
+                trailing = { ChevronIcon() }
+            )
+        }
+        SettingsGroup("Historial") {
+            SettingsItem(
+                icon = Icons.Default.History,
+                title = "Enviar historial a YouTube Music",
+                value = if (historySync && loggedIn) HistorySync.lastResult(context)?.let { "Último envío: $it" } else null,
+                enabled = loggedIn,
+                onClick = {
+                    historySync = !historySync
+                    HistorySync.setEnabled(context, historySync)
+                },
+                trailing = { Switch(checked = historySync && loggedIn, onCheckedChange = null, enabled = loggedIn) }
+            )
+        }
+        SettingsGroup("Almacenamiento") {
+            SettingsItem(
+                icon = Icons.Default.Storage,
+                title = "Caché de canciones",
+                value = "${formatBytes(cacheUsed)} / ${cacheLimitLabel(cacheMaxMb)}",
+                onClick = { showSizeDialog = true },
+                trailing = { ChevronIcon() }
+            )
+            GroupDivider()
+            SettingsItem(
+                icon = Icons.Default.DeleteSweep,
+                title = "Borrar caché de canciones",
+                onClick = { showClearDialog = true },
+                trailing = { ChevronIcon() }
+            )
+            GroupDivider()
+            SettingsItem(
+                icon = Icons.Default.Download,
+                title = "Borrar descargas",
+                value = formatBytes(downloadsUsed),
+                onClick = { showClearDownloads = true },
+                trailing = { ChevronIcon() }
+            )
+        }
+        SettingsGroup("Batería") {
+            SettingsItem(
+                icon = Icons.Default.BatteryAlert,
+                title = "Uso de batería de la app",
+                onClick = { openAppBatterySettings(context) },
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
                 trailing = { ChevronIcon() }
             )
         }

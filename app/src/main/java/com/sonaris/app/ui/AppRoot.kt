@@ -119,6 +119,7 @@ fun AppRoot(vm: MainViewModel = viewModel()) {
     var spotifyOpen by rememberSaveable { mutableStateOf(false) }
     var spotifyLoginOpen by rememberSaveable { mutableStateOf(false) }
     var translationOpen by rememberSaveable { mutableStateOf(false) }
+<<<<<<< HEAD
     var aboutOpen by rememberSaveable { mutableStateOf(false) }
     var songInfoOpen by rememberSaveable { mutableStateOf(false) }
     var accountSheet by remember { mutableStateOf(false) }
@@ -508,6 +509,391 @@ fun AppRoot(vm: MainViewModel = viewModel()) {
 
             if (aboutOpen) {
                 AboutScreen(onBack = { aboutOpen = false })
+=======
+    var songInfoOpen by rememberSaveable { mutableStateOf(false) }
+    var accountSheet by remember { mutableStateOf(false) }
+    var tab by rememberSaveable { mutableStateOf(0) }
+    var libraryDetail by rememberSaveable { mutableStateOf<String?>(null) }
+
+    var menu by remember { mutableStateOf<SongMenuTarget?>(null) }
+    var pickFor by remember { mutableStateOf<SongUi?>(null) }
+    var newPlaylist by remember { mutableStateOf<NewPlaylistRequest?>(null) }
+
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    fun toast(msg: String) {
+        scope.launch {
+            snackbar.currentSnackbarData?.dismiss()
+            snackbar.showSnackbar(msg)
+        }
+    }
+
+    // Al bajar por una lista la barra se esconde y el reproductor pequeño ocupa su lugar; al subir vuelve
+    var barsHidden by remember { mutableStateOf(false) }
+    val barsScroll = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y < -12f) barsHidden = true
+                else if (available.y > 12f) barsHidden = false
+                return Offset.Zero
+            }
+        }
+    }
+    LaunchedEffect(tab, albumOpen, artistOpen, showPlayer) { barsHidden = false }
+    val hideFrac by animateFloatAsState(
+        targetValue = if (barsHidden) 1f else 0f,
+        animationSpec = tween(300),
+        label = "barsHide"
+    )
+
+    // La posición de la letra va aparte: así las letras no recomponen toda la pantalla en cada tick
+    val lyricsPosition = remember { mutableLongStateOf(0L) }
+    SideEffect { lyricsPosition.longValue = player.positionMs }
+
+    // Con letras o cola encima, el reproductor grande queda tapado: se le congela la posición
+    // para que no se redibuje 2-4 veces por segundo sin que nadie lo vea.
+    val bigPlayerCovered = showLyrics || showQueue
+    val frozenPositionMs = remember(bigPlayerCovered) { player.positionMs }
+    val bigPlayerState = if (bigPlayerCovered) player.copy(positionMs = frozenPositionMs) else player
+
+    CompositionLocalProvider(LocalSongMenu provides { target -> menu = target }) {
+        Box(Modifier.fillMaxSize()) {
+            Scaffold(
+                modifier = Modifier.nestedScroll(barsScroll)
+            ) { scaffoldPadding ->
+                // Las barras ahora flotan sobre el contenido: se les deja el espacio por abajo
+                // El espacio reservado se anima junto con las barras: sin nada sonando y con la barra
+                // escondida, el contenido ocupa hasta abajo (sin banda negra).
+                val hasMini = player.current != null
+                val miniSpace = if (hasMini) MiniPlayerHeight + FloatingGap else 0.dp
+                val shownSpace = FloatingMargin + FloatingNavHeight + FloatingGap + miniSpace
+                val hiddenSpace = if (hasMini) FloatingMargin + miniSpace else 0.dp
+                val barsHeight = lerp(shownSpace, hiddenSpace, hideFrac)
+                val padding = PaddingValues(
+                    top = scaffoldPadding.calculateTopPadding(),
+                    bottom = scaffoldPadding.calculateBottomPadding() + barsHeight
+                )
+                val belowBar = Modifier.padding(bottom = padding.calculateBottomPadding())
+                if (albumOpen) {
+                    AlbumScreen(
+                        state = albumState,
+                        currentUrl = player.current?.url,
+                        onBack = { albumOpen = false },
+                        onPlay = vm::playFromList,
+                        onArtistClick = {
+                            albumState.album?.let { vm.openArtistOfAlbum(it) }
+                            albumOpen = false
+                            artistOpen = true
+                        },
+                        modifier = belowBar
+                    )
+                } else if (artistOpen) {
+                    ArtistScreen(
+                        state = artistState,
+                        currentUrl = player.current?.url,
+                        onBack = { artistOpen = false },
+                        onPlay = vm::playFromList,
+                        onAlbumClick = { album ->
+                            vm.openAlbum(album)
+                            albumOpen = true
+                        },
+                        onRetry = vm::retryArtist,
+                        modifier = belowBar
+                    )
+                } else when (tab) {
+                    0 -> HomeScreen(
+                        home = home,
+                        recents = recents,
+                        currentUrl = player.current?.url,
+                        onSongClick = vm::playFromDiscovery,
+                        onAlbumClick = { album ->
+                            vm.openAlbum(album)
+                            albumOpen = true
+                        },
+                        onGenreClick = { q ->
+                            vm.searchFor(q)
+                            tab = 1
+                            artistOpen = false
+                            albumOpen = false
+                        },
+                        onChipClick = { vm.selectChip(it) },
+                        onRefresh = { vm.loadHome(force = true) },
+                        onRetry = vm::retryShelf,
+                        onLoadShelf = vm::ensureShelf,
+                        loggedIn = loggedIn,
+                        onAccountClick = { accountSheet = true },
+                        onSettingsClick = { settingsOpen = true },
+                        modifier = Modifier.padding(padding)
+                    )
+
+                    1 -> SearchScreen(
+                        state = search,
+                        currentUrl = player.current?.url,
+                        onQueryChange = vm::onQueryChange,
+                        onSearch = vm::search,
+                        onSongClick = vm::playFromResults,
+                        onLoadMore = vm::loadMore,
+                        onArtistClick = { artist ->
+                            vm.openArtist(artist)
+                            artistOpen = true
+                            albumOpen = false
+                        },
+                        onAlbumClick = { album ->
+                            vm.openAlbum(album)
+                            albumOpen = true
+                        },
+                        explore = explore,
+                        onLoadExplore = { force -> vm.loadExplore(force) },
+                        onNeedThumb = vm::ensureCategoryThumb,
+                        onCategoryClick = vm::openCategory,
+                        onCategoryBack = vm::closeCategory,
+                        onShelfSongClick = vm::playFromDiscovery,
+                        modifier = Modifier.padding(padding)
+                    )
+
+                    else -> LibraryScreen(
+                        favorites = favorites,
+                        playlists = playlists,
+                        currentUrl = player.current?.url,
+                        detail = libraryDetail,
+                        onOpenDetail = { libraryDetail = it },
+                        onPlay = vm::playFromList,
+                        onNewPlaylist = { newPlaylist = NewPlaylistRequest(null) },
+                        onDeletePlaylist = vm::deletePlaylist,
+                        onRemoveFromPlaylist = vm::removeFromPlaylist,
+                        modifier = Modifier.padding(padding)
+                    )
+                }
+            }
+
+            // Barras flotantes: reproductor pequeño arriba y navegación abajo
+            Column(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(horizontal = FloatingMargin)
+                    .padding(bottom = FloatingMargin),
+                verticalArrangement = Arrangement.spacedBy(FloatingGap)
+            ) {
+                if (player.current != null) {
+                    MiniPlayer(
+                        state = player,
+                        onOpen = { showPlayer = true },
+                        onToggle = vm::togglePlay,
+                        onNext = vm::playNext,
+                        onPrevious = vm::playPrevious,
+                        // Al esconderse la navegación, baja a ocupar su lugar
+                        modifier = Modifier.graphicsLayer {
+                            translationY = (FloatingNavHeight + FloatingGap).toPx() * hideFrac
+                        }
+                    )
+                }
+                Box(Modifier.height(FloatingNavHeight)) {
+                    if (hideFrac < 0.98f) {
+                        FloatingNavBar(
+                            tab = tab,
+                            onTab = { t ->
+                                tab = t
+                                artistOpen = false
+                                albumOpen = false
+                            },
+                            modifier = Modifier.graphicsLayer {
+                                translationY = (FloatingNavHeight + 40.dp).toPx() * hideFrac
+                                alpha = 1f - hideFrac
+                            }
+                        )
+                    }
+                }
+            }
+
+            AnimatedVisibility(
+                visible = showPlayer,
+                enter = slideInVertically { it },
+                exit = slideOutVertically { it }
+            ) {
+                PlayerScreen(
+                    state = bigPlayerState,
+                    isFavorite = favorites.any { it.url == player.current?.url },
+                    onClose = { showPlayer = false },
+                    onToggle = vm::togglePlay,
+                    onNext = vm::playNext,
+                    onPrev = vm::playPrevious,
+                    onSeek = vm::seekTo,
+                    onToggleFavorite = { player.current?.let { vm.toggleFavorite(it) } },
+                    onShuffle = vm::toggleShuffle,
+                    onRepeat = vm::cycleRepeat,
+                    onMore = { player.current?.let { menu = SongMenuTarget(it, showQueueActions = false, fromPlayer = true) } },
+                    onInfo = {
+                        player.current?.let {
+                            vm.openSongInfo(it)
+                            songInfoOpen = true
+                        }
+                    },
+                    onLyrics = { showLyrics = true },
+                    onQueue = { showQueue = true },
+                    timerActive = sleepTimer.active,
+                    onTimer = { showTimer = true },
+                    canvasUrl = canvasUrl,
+                    lyrics = lyrics
+                )
+            }
+
+            if (showTimer) {
+                SleepTimerSheet(state = sleepTimer, onDismiss = { showTimer = false })
+            }
+
+            AnimatedVisibility(
+                visible = showLyrics,
+                enter = slideInVertically { it },
+                exit = slideOutVertically { it }
+            ) {
+                LyricsScreen(
+                    state = player.copy(positionMs = 0L),
+                    position = lyricsPosition,
+                    lyrics = lyrics,
+                    onClose = { showLyrics = false },
+                    onToggle = vm::togglePlay,
+                    onNext = vm::playNext,
+                    onPrev = vm::playPrevious,
+                    onSeek = vm::seekTo,
+                    onMore = { player.current?.let { menu = SongMenuTarget(it, showQueueActions = false, fromPlayer = true) } },
+                    onRetry = { player.current?.let { vm.loadLyrics(it, force = true) } }
+                )
+            }
+
+            AnimatedVisibility(
+                visible = showQueue,
+                enter = slideInVertically { it },
+                exit = slideOutVertically { it }
+            ) {
+                QueueScreen(
+                    queue = queue,
+                    isPlaying = player.isPlaying,
+                    onClose = { showQueue = false },
+                    onPlayAt = vm::playQueueItem,
+                    onRemove = vm::removeFromQueue,
+                    onMove = vm::moveInQueue,
+                    onClearUpcoming = {
+                        vm.clearUpcoming()
+                        toast("Se quitó lo que seguía en la cola")
+                    },
+                    autoRadio = autoRadio,
+                    onToggleRadio = {
+                        vm.toggleAutoRadio()
+                        toast(if (autoRadio) "Radio infinita desactivada" else "Radio infinita activada")
+                    },
+                    shuffle = player.shuffle,
+                    repeat = player.repeat,
+                    onShuffle = vm::toggleShuffle,
+                    onRepeat = vm::cycleRepeat
+                )
+            }
+
+            AnimatedVisibility(
+                visible = songInfoOpen,
+                enter = slideInVertically { it },
+                exit = slideOutVertically { it }
+            ) {
+                SongInfoScreen(
+                    state = songInfoState,
+                    onClose = { songInfoOpen = false },
+                    onOpenAlbum = { album ->
+                        vm.openAlbum(album)
+                        albumOpen = true
+                        artistOpen = false
+                        songInfoOpen = false
+                        showPlayer = false
+                        showLyrics = false
+                        showQueue = false
+                    },
+                    onOpenArtist = { name ->
+                        vm.openArtistByName(name)
+                        artistOpen = true
+                        albumOpen = false
+                        songInfoOpen = false
+                        showPlayer = false
+                        showLyrics = false
+                        showQueue = false
+                    },
+                    onCopyLink = { link ->
+                        clipboard.setText(AnnotatedString(link))
+                        toast("Enlace copiado")
+                    }
+                )
+            }
+
+            if (settingsOpen) {
+                SettingsScreen(
+                    loggedIn = loggedIn,
+                    discord = discordSettings,
+                    lastfm = lastfmSettings,
+                    spotify = spotifySettings,
+                    translation = translationSettings,
+                    onAccount = { accountSheet = true },
+                    onDiscord = { discordOpen = true },
+                    onLastfm = { lastfmOpen = true },
+                    onSpotify = { spotifyOpen = true },
+                    onTranslation = { translationOpen = true },
+                    onBack = { settingsOpen = false }
+                )
+            }
+
+            if (loginOpen) {
+                LoginScreen(
+                    onCookie = { cookie ->
+                        vm.onLoginSuccess(cookie)
+                        loginOpen = false
+                        toast("Sesión iniciada")
+                    },
+                    onClose = { loginOpen = false }
+                )
+            }
+
+            if (discordOpen) {
+                DiscordSettingsScreen(
+                    store = discordStore,
+                    onLogin = {
+                        val id = discordSettings.appId
+                        if (id.isBlank()) {
+                            toast("Falta el ID de aplicación")
+                        } else {
+                            try {
+                                DiscordAuth.start(appContext, id)
+                            } catch (e: Exception) {
+                                toast("No se pudo abrir el navegador")
+                            }
+                        }
+                    },
+                    onLogout = {
+                        discordStore.disconnect()
+                        toast("Discord desconectado")
+                    },
+                    onBack = { discordOpen = false }
+                )
+            }
+
+            if (lastfmOpen) {
+                LastfmSettingsScreen(
+                    store = lastfmStore,
+                    onBack = { lastfmOpen = false }
+                )
+            }
+
+            if (spotifyOpen) {
+                SpotifySettingsScreen(
+                    store = spotifyStore,
+                    service = spotifyService,
+                    onLogin = { spotifyLoginOpen = true },
+                    onBack = { spotifyOpen = false }
+                )
+            }
+
+            if (translationOpen) {
+                TranslationSettingsScreen(
+                    store = translationStore,
+                    onBack = { translationOpen = false }
+                )
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
             }
 
             if (spotifyLoginOpen) {
