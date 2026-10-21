@@ -507,6 +507,7 @@ object YtMusicApi {
         val songs: List<SongUi>,
         val albums: List<AlbumUi>,
         /** true si YouTube lo manda como filas de canciones (Selecciones rápidas): se muestra en columnas de 3. */
+<<<<<<< HEAD
         val compact: Boolean = false,
         /** Nombre de la cuenta que YouTube pone sobre el título en estantes personalizados (p. ej. "Accesos directos"). */
         val strapline: String? = null,
@@ -729,6 +730,213 @@ object YtMusicApi {
             }
         }
         Log.d(TAG, "estantes del feed: " + shelves.joinToString(" | ") { it.title + if (it.speedDial) " [accesos directos]" else "" })
+=======
+        val compact: Boolean = false
+    )
+
+    /** Categoría de "Estados de ánimo y géneros" de YouTube Music (Los 70, Pop latino, Hip hop...). */
+    class ExploreCategory(val title: String, val browseId: String, val params: String, val color: Long?)
+
+    /** Todas las categorías de "Explorar" (estados de ánimo y géneros), con el color que les da YouTube. */
+    fun exploreCategories(hl: String, gl: String): List<ExploreCategory> {
+        val root = post("browse", baseBody(hl, gl, false).put("browseId", "FEmusic_moods_and_genres"))
+        val buttons = ArrayList<JSONObject>()
+        collect(root, "musicNavigationButtonRenderer", buttons)
+        return buttons.mapNotNull { b ->
+            val e = b.obj("clickCommand", "browseEndpoint") ?: return@mapNotNull null
+            val params = e.optString("params")
+            val title = b.obj("buttonText").runsText().trim()
+            if (params.isBlank() || title.isBlank()) return@mapNotNull null
+            val color = b.optJSONObject("solid")?.optLong("leftStripeColor", 0L)?.takeIf { it != 0L }
+            ExploreCategory(title, e.optString("browseId").ifBlank { "FEmusic_moods_and_genres_category" }, params, color)
+        }.distinctBy { it.params }
+    }
+
+    /** Listas y estantes de una categoría de Explorar. */
+    fun categoryFeed(cat: ExploreCategory, hl: String, gl: String): List<FeedShelf> {
+        val root = post(
+            "browse",
+            baseBody(hl, gl, false).put("browseId", cat.browseId).put("params", cat.params)
+        )
+        return parseFeed(root, includeGrids = true).distinctBy { it.title }
+    }
+
+    /** Chip de la parte de arriba del Inicio de YouTube Music (Relajar, Energizar, Entrenar...). */
+    class FeedChip(val label: String, val browseId: String, val params: String)
+
+    private fun parseChips(root: JSONObject): List<FeedChip> {
+        val found = ArrayList<JSONObject>()
+        collect(root, "chipCloudChipRenderer", found)
+        return found.mapNotNull { chip ->
+            val e = chip.obj("navigationEndpoint", "browseEndpoint") ?: return@mapNotNull null
+            val params = e.optString("params")
+            val label = chip.obj("text").runsText().trim()
+            if (params.isBlank() || label.isBlank()) return@mapNotNull null
+            FeedChip(label, e.optString("browseId").ifBlank { "FEmusic_home" }, params)
+        }.distinctBy { it.params }
+    }
+
+    /** Estantes que YouTube Music muestra al tocar un chip del Inicio. */
+    fun chipFeed(chip: FeedChip, hl: String, gl: String, android: Boolean = false): List<FeedShelf> {
+        val root = post(
+            "browse",
+            baseBody(hl, gl, android).put("browseId", chip.browseId).put("params", chip.params),
+            android = android
+        )
+        return parseFeed(root).distinctBy { it.title }
+    }
+
+    /**
+     * Inicio de YouTube Music (FEmusic_home): los estantes que arma el algoritmo de YouTube.
+     * Sin cuenta iniciada no es personal: depende de la región ([gl]) y del idioma ([hl]).
+     * [android] usa el cliente ANDROID_MUSIC en lugar de WEB_REMIX.
+     */
+    fun home(
+        hl: String,
+        gl: String,
+        android: Boolean = false,
+        /** Se llama con todos los estantes acumulados cada vez que llega una página nueva. */
+        onProgress: (List<FeedShelf>) -> Unit = {},
+        /** Se llama una vez con los chips del Inicio (Relajar, Energizar...), si YouTube los manda. */
+        onChips: (List<FeedChip>) -> Unit = {}
+    ): List<FeedShelf> {
+        val out = ArrayList<FeedShelf>()
+        val first = post("browse", baseBody(hl, gl, android).put("browseId", "FEmusic_home"), android = android)
+        parseChips(first).takeIf { it.isNotEmpty() }?.let(onChips)
+        out += parseFeed(first)
+        if (out.isNotEmpty()) onProgress(out.distinctBy { it.title })
+        Log.d(TAG, "página 1 (android=$android): ${out.size} estantes, token=${continuationToken(first)?.length}")
+
+        // Siguientes páginas del Inicio
+        var token = continuationToken(first)
+        var pages = 1
+        while (!token.isNullOrBlank() && pages < 6 && out.size < 20) {
+            val next = fetchContinuation(token, hl, gl, android) ?: break
+            val shelves = parseFeed(next)
+            out += shelves
+            onProgress(out.distinctBy { it.title })
+            token = continuationToken(next)
+            pages++
+            Log.d(TAG, "página $pages: +${shelves.size} estantes, token=${token?.length}")
+        }
+
+        // Si aun así hay pocos, los estantes de cada chip de ánimo (Energizar, Relajar...) que YouTube ofrece
+        if (out.size < 8) {
+            val chips = ArrayList<JSONObject>()
+            collect(first, "chipCloudChipRenderer", chips)
+            Log.d(TAG, "chips encontrados: ${chips.size}")
+            var used = 0
+            for (chip in chips) {
+                if (used >= 4) break
+                val e = chip.obj("navigationEndpoint", "browseEndpoint") ?: continue
+                val params = e.optString("params")
+                if (params.isBlank()) continue
+                val id = e.optString("browseId").ifBlank { "FEmusic_home" }
+                try {
+                    val root = post(
+                        "browse",
+                        baseBody(hl, gl, android).put("browseId", id).put("params", params),
+                        android = android
+                    )
+                    val shelves = parseFeed(root)
+                    Log.d(TAG, "chip '${chip.obj("text").runsText()}': ${shelves.size} estantes")
+                    out += shelves
+                    onProgress(out.distinctBy { it.title })
+                    used++
+                } catch (ex: IOException) {
+                    Log.w(TAG, "chip falló: ${ex.message}")
+                }
+            }
+        }
+        return out.distinctBy { it.title }
+    }
+
+    private fun continuationToken(root: JSONObject): String? =
+        findFirst(root, "nextContinuationData")?.optString("continuation")?.takeIf { it.isNotBlank() }
+            ?: findFirst(root, "continuationCommand")?.optString("token")?.takeIf { it.isNotBlank() }
+
+    /**
+     * Pide la siguiente página probando las formas que usan YouTube Music y ytmusicapi.
+     * El token ya viene codificado por YouTube (termina en %3D...), no se vuelve a codificar.
+     */
+    private fun fetchContinuation(token: String, hl: String, gl: String, android: Boolean): JSONObject? {
+        val attempts: List<() -> JSONObject> = listOf(
+            {
+                post(
+                    "browse", baseBody(hl, gl, android).put("browseId", "FEmusic_home"),
+                    query = "&ctoken=$token&continuation=$token", android = android
+                )
+            },
+            {
+                post(
+                    "browse", baseBody(hl, gl, android),
+                    query = "&ctoken=$token&continuation=$token&type=next", android = android
+                )
+            },
+            { post("browse", baseBody(hl, gl, android).put("continuation", token), android = android) }
+        )
+        for ((i, attempt) in attempts.withIndex()) {
+            try {
+                val root = attempt()
+                if (parseFeed(root).isNotEmpty()) return root
+                Log.w(TAG, "continuación intento ${i + 1}: respuesta sin estantes")
+            } catch (e: IOException) {
+                Log.w(TAG, "continuación intento ${i + 1} falló: ${e.message}")
+            }
+        }
+        return null
+    }
+
+    private fun parseFeed(root: JSONObject, includeGrids: Boolean = false): List<FeedShelf> {
+        val carousels = ArrayList<JSONObject>()
+        collect(root, "musicCarouselShelfRenderer", carousels)
+        val blocks = ArrayList<Pair<String, org.json.JSONArray>>()
+        for (car in carousels) {
+            val title = car.obj("header", "musicCarouselShelfBasicHeaderRenderer", "title").runsText()
+            if (title.isBlank()) continue
+            val contents = car.optJSONArray("contents") ?: continue
+            blocks.add(title to contents)
+        }
+        if (includeGrids) {
+            // Las páginas de categoría (Estados de ánimo y géneros) también traen listas en cuadrículas
+            val grids = ArrayList<JSONObject>()
+            collect(root, "gridRenderer", grids)
+            for (g in grids) {
+                val title = g.obj("header", "gridHeaderRenderer", "title").runsText().ifBlank { "Listas" }
+                val items = g.optJSONArray("items") ?: continue
+                blocks.add(title to items)
+            }
+        }
+        val shelves = ArrayList<FeedShelf>()
+        for ((title, contents) in blocks) {
+
+            val songs = ArrayList<SongUi>()
+            val albums = ArrayList<AlbumUi>()
+            var fromRows = false
+            for (i in 0 until contents.length()) {
+                val c = contents.optJSONObject(i) ?: continue
+                c.optJSONObject("musicResponsiveListItemRenderer")?.let { row ->
+                    val song = parseFeedSongRow(row)
+                    if (song != null) {
+                        songs.add(song)
+                        fromRows = true
+                    }
+                }
+                c.optJSONObject("musicTwoRowItemRenderer")?.let { t ->
+                    val song = parseFeedTwoRowSong(t)
+                    if (song != null) {
+                        songs.add(song)
+                    } else {
+                        val album = parseFeedAlbum(t)
+                        if (album != null) albums.add(album)
+                    }
+                }
+            }
+            val s = songs.distinctBy { it.url }
+            val a = albums.distinctBy { it.url }
+            if (s.size + a.size >= 2) shelves.add(FeedShelf(title, s, a, compact = fromRows && a.isEmpty()))
+        }
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
         return shelves
     }
 

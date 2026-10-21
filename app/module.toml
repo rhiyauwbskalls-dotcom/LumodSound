@@ -59,7 +59,49 @@ versionCode = 1
 versionName = "1.0"
 isApplication = true
 manifestPlaceholders = []
+<<<<<<< HEAD
 buildConfigFields = []
 buildTypes = [{ name = "debug", debuggable = true, minifyEnabled = false, shrinkResources = false }, { name = "release", debuggable = false, minifyEnabled = false, shrinkResources = false, proguardFiles = ["proguard-android-optimize.txt", "proguard-rules.pro"] }]
 compose = true
 buildConfig = false
+=======
+<<<<<<< HEAD
+buildConfigFields = []
+buildTypes = [{ name = "debug", debuggable = true, minifyEnabled = false, shrinkResources = false }, { name = "release", debuggable = false, minifyEnabled = false, shrinkResources = false, proguardFiles = ["proguard-android-optimize.txt", "proguard-rules.pro"] }]
+compose = true
+buildConfig = false
+=======
+<<<<<<< HEAD
+buildConfigFields = []
+buildTypes = [{ name = "debug", debuggable = true, minifyEnabled = false, shrinkResources = false }, { name = "release", debuggable = false, minifyEnabled = false, shrinkResources = false, proguardFiles = ["proguard-android-optimize.txt", "proguard-rules.pro"] }]
+compose = true
+buildConfig = false
+=======
+<<<<<<< HEAD
+buildConfigFields = []
+buildTypes = [{ name = "debug", debuggable = true, minifyEnabled = false, shrinkResources = false }, { name = "release", debuggable = false, minifyEnabled = false, shrinkResources = false, proguardFiles = ["proguard-android-optimize.txt", "proguard-rules.pro"] }]
+compose = true
+buildConfig = false
+=======
+<<<<<<< HEAD
+buildConfigFields = []
+buildTypes = [{ name = "debug", debuggable = true, minifyEnabled = false, shrinkResources = false }, { name = "release", debuggable = false, minifyEnabled = false, shrinkResources = false, proguardFiles = ["proguard-android-optimize.txt", "proguard-rules.pro"] }]
+compose = true
+buildConfig = false
+=======
+<<<<<<< HEAD
+buildConfigFields = ["String LASTFM_API_KEY = \"secret(\"LASTFM_API_KEY\")\"", "String LASTFM_SECRET = \"secret(\"LASTFM_SECRET\")\""]
+=======
+<<<<<<< HEAD
+buildConfigFields = ["String LASTFM_API_KEY = \"secret(\"LASTFM_API_KEY\")\"", "String LASTFM_SECRET = \"secret(\"LASTFM_SECRET\")\""]
+=======
+buildConfigFields = ["String LASTFM_API_KEY = \"${secret(", "String LASTFM_SECRET = \"${secret("]
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+buildTypes = [{ name = "debug", debuggable = true, minifyEnabled = false, shrinkResources = false }, { name = "release", debuggable = false, minifyEnabled = false, shrinkResources = false, proguardFiles = ["proguard-android-optimize.txt", "proguard-rules.pro"] }]
+compose = true
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris

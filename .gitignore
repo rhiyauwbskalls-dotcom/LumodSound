@@ -21,9 +21,36 @@ google-services.json
 *.aab
 /app/release
 .kotlin/
+<<<<<<< HEAD
 
 # Claves de Last.fm (local)
 /app/src/main/assets/lastfm.properties
+=======
+<<<<<<< HEAD
+
+# Claves de Last.fm (local)
+/app/src/main/assets/lastfm.properties
+=======
+<<<<<<< HEAD
+
+# Claves de Last.fm (local)
+/app/src/main/assets/lastfm.properties
+=======
+<<<<<<< HEAD
+
+# Claves de Last.fm (local)
+/app/src/main/assets/lastfm.properties
+=======
+<<<<<<< HEAD
+
+# Claves de Last.fm (local)
+/app/src/main/assets/lastfm.properties
+=======
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
 build/
 .platform/
 .gradle/

@@ -166,6 +166,7 @@ fun HomeScreen(
                 QuickAccessGrid(recents.take(6), currentUrl) { i -> onSongClick(recents, i) }
             }
             if (recents.size > 6) {
+<<<<<<< HEAD
                 // "Escuchado recientemente": columnas de 3 canciones, como las Selecciones rápidas de YouTube Music
                 item(key = "recents") {
                     Column(Modifier.padding(top = 24.dp)) {
@@ -235,6 +236,68 @@ fun ShelfSection(
             SpeedDial(shelf.title, shelf.strapline, shelf.songs, shelf.albums, onSongClick, onAlbumClick)
         }
         return
+=======
+                item(key = "recents") {
+                    Column(Modifier.padding(top = 24.dp)) {
+                        ShelfTitle("Escuchado recientemente")
+                        Spacer(Modifier.height(8.dp))
+                        SongRow(recents.drop(6), currentUrl, onSongClick)
+                    }
+                }
+            }
+        }
+
+        // Recomendaciones de YouTube Music
+        items(home.feed, key = { it.id }) { shelf ->
+            ShelfSection(shelf, currentUrl, onSongClick, onRetry, onLoadShelf, onAlbumClick)
+        }
+
+        if (!home.feedDone) {
+            // Mientras YouTube responde no se muestra nada más: así el Inicio no cambia de orden al cargar
+            item(key = "feed-loading") {
+                Box(Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+        } else {
+            // Si YouTube trae pocos estantes, debajo siguen los de géneros para poder seguir bajando
+            if (home.feed.size < 6) {
+                items(home.shelves, key = { it.id }) { shelf ->
+                    ShelfSection(shelf, currentUrl, onSongClick, onRetry, onLoadShelf)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ShelfTitle(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(horizontal = 16.dp)
+    )
+}
+
+/**
+ * Cada estante pide sus canciones solo cuando aparece en pantalla (LazyColumn solo compone
+ * lo que está a la vista), así no se descargan diez listas y cientos de portadas de golpe.
+ */
+@Composable
+fun ShelfSection(
+    shelf: Shelf,
+    currentUrl: String?,
+    onSongClick: (List<SongUi>, Int) -> Unit,
+    onRetry: (String) -> Unit,
+    onLoad: (String) -> Unit,
+    onAlbumClick: (AlbumUi) -> Unit = {}
+) {
+    LaunchedEffect(shelf.id, shelf.status) {
+        if (shelf.status == ShelfStatus.IDLE) onLoad(shelf.id)
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
     }
 
     Column(Modifier.padding(top = 24.dp)) {

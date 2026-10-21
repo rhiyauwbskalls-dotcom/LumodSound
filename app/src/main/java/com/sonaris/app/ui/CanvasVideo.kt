@@ -22,6 +22,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+<<<<<<< HEAD
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -50,6 +51,60 @@ fun CanvasVideo(
         ExoPlayer.Builder(context)
             .setMediaSourceFactory(DefaultMediaSourceFactory(CanvasCache.dataSourceFactory(context)))
             .build().apply {
+=======
+<<<<<<< HEAD
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import com.sonaris.app.player.CanvasCache
+import kotlin.math.max
+
+/**
+ * Video del Canvas de Spotify: sin sonido, en bucle y recortado para llenar todo el espacio (como un
+ * "centerCrop"). Va en su propio reproductor, aparte del de la música; se pausa cuando la música se pausa.
+ * [onReady] avisa con true cuando se pinta el primer cuadro, o con false si el video falla.
+ */
+@OptIn(UnstableApi::class)
+@Composable
+fun CanvasVideo(
+    url: String,
+    playing: Boolean,
+    onReady: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val latestReady by rememberUpdatedState(onReady)
+    var videoSize by remember(url) { mutableStateOf<VideoSize?>(null) }
+
+    val player = remember(url) {
+        // Los bytes del video se guardan en disco al verlo (ver CanvasCache): la próxima vez no gasta datos
+        ExoPlayer.Builder(context)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(CanvasCache.dataSourceFactory(context)))
+            .build().apply {
+=======
+import androidx.media3.exoplayer.ExoPlayer
+import kotlin.math.max
+
+/**
+ * Video del Canvas de Spotify: sin sonido, en bucle y recortado para llenar todo el espacio (como un
+ * "centerCrop"). Va en su propio reproductor, aparte del de la música; se pausa cuando la música se pausa.
+ * [onReady] avisa con true cuando se pinta el primer cuadro, o con false si el video falla.
+ */
+@Composable
+fun CanvasVideo(
+    url: String,
+    playing: Boolean,
+    onReady: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val latestReady by rememberUpdatedState(onReady)
+    var videoSize by remember(url) { mutableStateOf<VideoSize?>(null) }
+
+    val player = remember(url) {
+        ExoPlayer.Builder(context).build().apply {
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
             volume = 0f
             repeatMode = Player.REPEAT_MODE_ONE
             setMediaItem(MediaItem.fromUri(url))

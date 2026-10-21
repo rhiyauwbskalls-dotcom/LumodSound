@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+<<<<<<< HEAD
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -593,6 +594,587 @@ fun PlayerScreen(
                 Text(it, color = Color(0xFFFF8A80), textAlign = TextAlign.Center)
             }
             Spacer(Modifier.height(24.dp))
+=======
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import com.sonaris.app.data.LyricLine
+import com.sonaris.app.data.LyricsState
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.core.graphics.drawable.toBitmap
+import androidx.palette.graphics.Palette
+import coil.compose.AsyncImage
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.sp
+import androidx.core.graphics.ColorUtils
+import androidx.compose.ui.graphics.toArgb
+import kotlin.math.abs
+import kotlin.math.roundToInt
+import com.sonaris.app.PlayerState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+private val Heart = Color(0xFFFF5A7A)
+internal val PlayerBase = Color(0xFF121212)
+
+/**
+ * Oscurece y apaga un poco el color de la portada para usarlo de fondo: así el texto blanco siempre
+ * se lee (aunque la portada sea amarilla o blanca) y el degradado se ve más elegante.
+ */
+internal fun tameForBackground(c: Color): Color {
+    val hsl = FloatArray(3)
+    ColorUtils.colorToHSL(c.toArgb(), hsl)
+    hsl[1] = hsl[1].coerceAtMost(0.70f)
+    hsl[2] = hsl[2].coerceIn(0.18f, 0.34f)
+    return Color(ColorUtils.HSLToColor(hsl))
+}
+
+/** Color del degradado de fondo a [f] (0 = arriba, 1 = abajo): llega al fondo oscuro al 70 % de la altura. */
+private fun bgColorAt(top: Color, bottom: Color, f: Float): Color =
+    lerp(top, bottom, (f / 0.7f).coerceIn(0f, 1f))
+
+/** Color dominante de la portada (animado); gris neutro mientras carga o si no hay. */
+@Composable
+internal fun rememberArtAccent(thumb: String?): Color {
+    val context = LocalContext.current
+    var accent by remember { mutableStateOf<Color?>(null) }
+    LaunchedEffect(thumb) {
+        val url = thumb ?: return@LaunchedEffect
+        try {
+            val request = ImageRequest.Builder(context)
+                .data(url)
+                .size(128)
+                .allowHardware(false)
+                .build()
+            val drawable = (context.imageLoader.execute(request) as? SuccessResult)?.drawable
+                ?: return@LaunchedEffect
+            val bitmap = drawable.toBitmap()
+            val rgb = withContext(Dispatchers.Default) {
+                val p = Palette.from(bitmap).generate()
+                p.getVibrantColor(p.getMutedColor(p.getDominantColor(0)))
+            }
+            accent = if (rgb != 0) Color(rgb) else null
+        } catch (e: Exception) {
+            // sin color dominante: se queda el fondo neutro
+        }
+    }
+    val animated by animateColorAsState(
+        targetValue = accent ?: Color(0xFF3A3A3A),
+        animationSpec = tween(700),
+        label = "accent"
+    )
+    return animated
+}
+
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+fun PlayerScreen(
+    state: PlayerState,
+    isFavorite: Boolean,
+    onClose: () -> Unit,
+    onToggle: () -> Unit,
+    onNext: () -> Unit,
+    onPrev: () -> Unit,
+    onSeek: (Long) -> Unit,
+    onToggleFavorite: () -> Unit,
+    onShuffle: () -> Unit,
+    onRepeat: () -> Unit,
+    onMore: () -> Unit,
+    onInfo: () -> Unit,
+    onLyrics: () -> Unit,
+    onQueue: () -> Unit,
+    timerActive: Boolean,
+    onTimer: () -> Unit,
+    canvasUrl: String? = null,
+    lyrics: LyricsState? = null
+) {
+    val song = state.current ?: return
+    val context = LocalContext.current
+
+    // Color dominante de la portada -> fondo con degradado
+    val animatedAccent = rememberArtAccent(song.thumb)
+    val top = remember(animatedAccent) { tameForBackground(animatedAccent) }
+    val bottom = PlayerBase
+
+    val content = Color.White
+    val muted = Color.White.copy(alpha = 0.65f)
+
+    var dragging by remember { mutableStateOf<Float?>(null) }
+    val fraction = if (state.durationMs > 0) {
+        (state.positionMs.toFloat() / state.durationMs).coerceIn(0f, 1f)
+    } else 0f
+    val shownFraction = dragging ?: fraction
+
+    val artScale by animateFloatAsState(
+        targetValue = if (state.isPlaying) 1f else 0.88f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "artScale"
+    )
+    val playInteraction = remember { MutableInteractionSource() }
+    val playPressed by playInteraction.collectIsPressedAsState()
+    val playScale by animateFloatAsState(
+        targetValue = if (playPressed) 0.92f else 1f,
+        label = "playScale"
+    )
+
+    // Deslizar la portada: izquierda = siguiente, derecha = anterior
+    val swipeX = remember { Animatable(0f) }
+    val swipeScope = rememberCoroutineScope()
+    val latestNext by rememberUpdatedState(onNext)
+    val latestPrev by rememberUpdatedState(onPrev)
+
+    // Posiciones (en px, dentro de esta pantalla) de donde acaba la barra de arriba y donde empieza el título:
+    // el Canvas solo se dibuja entre las dos; arriba y abajo se ve el fondo con el color de la portada.
+    val density = LocalDensity.current
+    var boxTop by remember { mutableStateOf(0f) }
+    var boxHeight by remember { mutableStateOf(0f) }
+    var headerBottom by remember { mutableStateOf(0f) }
+    var infoTop by remember { mutableStateOf(0f) }
+    var infoBottom by remember { mutableStateOf(0f) }
+    // Cuánto hay que bajar título + progreso para que queden abajo del todo (encima de la barra de navegación)
+    val navBottomPx = WindowInsets.navigationBars.getBottom(density).toFloat()
+    val bottomMarginPx = with(density) { 28.dp.toPx() }
+    val infoShift = if (boxHeight > 0f && infoBottom > 0f) {
+        (boxHeight - navBottomPx - bottomMarginPx - infoBottom).coerceAtLeast(0f)
+    } else 0f
+
+    // Modo inmersivo: con Canvas, tras unos segundos sin tocar se ocultan los botones y el video pasa a pantalla completa.
+    // Un toque vuelve a la vista normal (con el fondo del color de la portada) sin pausar la canción.
+    var canvasReady by remember(canvasUrl) { mutableStateOf(false) }
+    var immersive by remember(canvasUrl) { mutableStateOf(false) }
+    var touchTick by remember { mutableStateOf(0) }
+    val immersiveF by animateFloatAsState(
+        targetValue = if (immersive) 1f else 0f,
+        animationSpec = tween(450),
+        label = "immersive"
+    )
+    LaunchedEffect(canvasReady, state.isPlaying) {
+        if (!canvasReady || !state.isPlaying) immersive = false
+    }
+    LaunchedEffect(canvasReady, immersive, touchTick, state.isPlaying, dragging) {
+        if (canvasReady && !immersive && state.isPlaying && dragging == null) {
+            delay(4000)
+            immersive = true
+        }
+    }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            // Cada toque reinicia la cuenta atrás (solo se observa, no se consume)
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        if (event.changes.any { it.pressed && !it.previousPressed }) touchTick++
+                    }
+                }
+            }
+            .onGloballyPositioned {
+                boxTop = it.positionInRoot().y
+                boxHeight = it.size.height.toFloat()
+            }
+            .background(Brush.verticalGradient(0f to top, 0.7f to bottom, 1f to bottom))
+    ) {
+        // Canvas de Spotify: video en la franja del medio (entre la barra de arriba y el título/controles). Las franjas
+        // de arriba y de abajo conservan el degradado con el color de la portada, y el video se funde con ellas.
+        if (canvasUrl != null) {
+            val measured = headerBottom > 0f && infoTop > headerBottom + 50f
+            val baseTopPx = if (measured) headerBottom else boxHeight * 0.11f
+            val baseBottomPx = if (measured) infoTop else boxHeight * 0.55f
+            // En modo inmersivo la franja crece hasta ocupar toda la pantalla
+            val bandTopPx = baseTopPx * (1f - immersiveF)
+            val bandBottomPx = baseBottomPx + (boxHeight - baseBottomPx) * immersiveF
+            val bandTop = with(density) { bandTopPx.toDp() }
+            val bandHeight = with(density) { (bandBottomPx - bandTopPx).coerceAtLeast(1f).toDp() }
+            CanvasVideo(
+                url = canvasUrl,
+                playing = state.isPlaying,
+                onReady = { canvasReady = it },
+                modifier = Modifier.fillMaxWidth().padding(top = bandTop).height(bandHeight)
+            )
+            if (canvasReady && boxHeight > 0f) {
+                val fade = 44.dp
+                val fadePx = with(density) { fade.toPx() }
+                // Color del fondo justo en cada borde de la franja, para que el video se funda sin corte
+                val bgTop = bgColorAt(top, bottom, bandTopPx / boxHeight)
+                val bgBottom = bgColorAt(top, bottom, bandBottomPx / boxHeight)
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = bandTop)
+                        .height(fade)
+                        .alpha(1f - immersiveF)
+                        .background(Brush.verticalGradient(listOf(bgTop, Color.Transparent)))
+                )
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = with(density) { (bandBottomPx - fadePx).coerceAtLeast(0f).toDp() })
+                        .height(fade)
+                        .alpha(1f - immersiveF)
+                        .background(Brush.verticalGradient(listOf(Color.Transparent, bgBottom)))
+                )
+                // Velo suave abajo para que se lea el título cuando el video ocupa toda la pantalla
+                if (immersiveF > 0f) {
+                    Box(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.38f)
+                            .alpha(immersiveF)
+                            .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f))))
+                    )
+                }
+            }
+        }
+        Column(
+            Modifier
+                .fillMaxSize()
+                .systemBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .onGloballyPositioned { headerBottom = it.positionInRoot().y - boxTop + it.size.height }
+                    .graphicsLayer { alpha = 1f - immersiveF },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Cerrar", tint = content)
+                }
+                Text(
+                    "REPRODUCIENDO",
+                    style = MaterialTheme.typography.labelSmall,
+                    letterSpacing = 1.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = muted,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = onMore) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Más opciones", tint = content)
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = if (canvasReady) Color.Transparent else Color.Black,
+                shadowElevation = if (canvasReady) 0.dp else 32.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragEnd = {
+                                val w = size.width.toFloat()
+                                val x = swipeX.value
+                                swipeScope.launch {
+                                    when {
+                                        x < -w * 0.25f -> {
+                                            swipeX.animateTo(-w, tween(180))
+                                            latestNext()
+                                            swipeX.snapTo(w)
+                                            swipeX.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
+                                        }
+                                        x > w * 0.25f -> {
+                                            swipeX.animateTo(w, tween(180))
+                                            latestPrev()
+                                            swipeX.snapTo(-w)
+                                            swipeX.animateTo(0f, spring(stiffness = Spring.StiffnessMediumLow))
+                                        }
+                                        else -> swipeX.animateTo(0f, spring(stiffness = Spring.StiffnessMedium))
+                                    }
+                                }
+                            },
+                            onDragCancel = {
+                                swipeScope.launch { swipeX.animateTo(0f, spring()) }
+                            },
+                            onHorizontalDrag = { change, dragAmount ->
+                                change.consume()
+                                swipeScope.launch { swipeX.snapTo(swipeX.value + dragAmount) }
+                            }
+                        )
+                    }
+                    .offset { IntOffset(swipeX.value.roundToInt(), 0) }
+                    .graphicsLayer {
+                        scaleX = artScale
+                        scaleY = artScale
+                        rotationZ = swipeX.value / 60f
+                        alpha = 1f - (abs(swipeX.value) / 1500f).coerceIn(0f, 0.5f)
+                    }
+            ) {
+                HiResArtwork(song.thumb, Modifier.fillMaxSize().alpha(if (canvasReady) 0f else 1f))
+            }
+
+            // Los dos Spacer con medida no se mueven: marcan dónde empieza y dónde acaba el bloque título + progreso
+            Spacer(Modifier.height(20.dp).onGloballyPositioned { infoTop = it.positionInRoot().y - boxTop + it.size.height })
+            // En modo inmersivo este bloque baja al fondo de la pantalla
+            Column(Modifier.fillMaxWidth().graphicsLayer { translationY = infoShift * immersiveF }) {
+            // Letra sincronizada (si la hay) encima del título; baja con el bloque en el modo de pantalla completa
+            if (lyrics is LyricsState.Synced && lyrics.lines.isNotEmpty()) {
+                LyricsPreview(lines = lyrics.lines, positionMs = state.positionMs, onClick = onLyrics)
+                Spacer(Modifier.height(4.dp))
+            }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    // Una sola línea: si el título es largo se desplaza en carrusel (y reinicia al cambiar de canción)
+                    androidx.compose.runtime.key(song.url) {
+                        Text(
+                            song.title,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = content,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Clip,
+                            modifier = Modifier.basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                initialDelayMillis = 1500,
+                                velocity = 40.dp
+                            )
+                        )
+                    }
+                    Text(
+                        song.artist,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = muted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                IconButton(onClick = onToggleFavorite, modifier = Modifier.graphicsLayer { alpha = 1f - immersiveF }) {
+                    Icon(
+                        if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = if (isFavorite) "Quitar de favoritos" else "Agregar a favoritos",
+                        tint = if (isFavorite) Heart else content,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+            SeekBar(
+                fraction = shownFraction,
+                active = dragging != null,
+                enabled = state.durationMs > 0 && !state.isLoadingStream,
+                onSeek = { dragging = it },
+                onSeekFinished = {
+                    dragging?.let { onSeek((it * state.durationMs).toLong()) }
+                    dragging = null
+                }
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    formatTime((shownFraction * state.durationMs).toLong()),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = muted
+                )
+                Text(formatTime(state.durationMs), style = MaterialTheme.typography.labelMedium, color = muted)
+            }
+
+            }
+            Spacer(Modifier.height(12.dp).onGloballyPositioned { infoBottom = it.positionInRoot().y - boxTop })
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer { alpha = 1f - immersiveF },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PlayerToggleButton(
+                    icon = Icons.Default.Shuffle,
+                    label = "Aleatorio",
+                    active = state.shuffle,
+                    onClick = onShuffle
+                )
+                IconButton(onClick = onPrev, modifier = Modifier.size(60.dp)) {
+                    Icon(
+                        Icons.Default.SkipPrevious,
+                        contentDescription = "Anterior",
+                        tint = content,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+                FilledIconButton(
+                    onClick = onToggle,
+                    enabled = !state.isLoadingStream,
+                    shape = CircleShape,
+                    interactionSource = playInteraction,
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black,
+                        disabledContainerColor = Color.White.copy(alpha = 0.85f),
+                        disabledContentColor = Color.Black
+                    ),
+                    modifier = Modifier
+                        .size(76.dp)
+                        .graphicsLayer {
+                            scaleX = playScale
+                            scaleY = playScale
+                        }
+                ) {
+                    if (state.isLoadingStream) {
+                        CircularProgressIndicator(
+                            Modifier.size(30.dp),
+                            strokeWidth = 3.dp,
+                            color = Color.Black
+                        )
+                    } else {
+                        Icon(
+                            if (state.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (state.isPlaying) "Pausar" else "Reproducir",
+                            modifier = Modifier.size(42.dp)
+                        )
+                    }
+                }
+                IconButton(onClick = onNext, modifier = Modifier.size(60.dp)) {
+                    Icon(
+                        Icons.Default.SkipNext,
+                        contentDescription = "Siguiente",
+                        tint = content,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+                PlayerToggleButton(
+                    icon = if (state.repeat == 2) Icons.Default.RepeatOne else Icons.Default.Repeat,
+                    label = "Repetir",
+                    active = state.repeat != 0,
+                    onClick = onRepeat
+                )
+            }
+
+            state.error?.let {
+                Spacer(Modifier.height(16.dp))
+                Text(it, color = Color(0xFFFF8A80), textAlign = TextAlign.Center)
+            }
+            Spacer(Modifier.height(72.dp)) // espacio para que letra/cola no tapen nada al hacer scroll
+        }
+
+        // Letra y cola: fijos en la esquina inferior derecha, sin fondo
+        Row(
+            Modifier
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding()
+                .padding(end = 12.dp, bottom = 8.dp)
+                .graphicsLayer { alpha = 1f - immersiveF },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onTimer, modifier = Modifier.size(52.dp)) {
+                Icon(
+                    if (timerActive) Icons.Filled.Timer else Icons.Outlined.Timer,
+                    contentDescription = "Temporizador",
+                    tint = if (timerActive) Color.White else Color.White.copy(alpha = 0.85f),
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+            IconButton(onClick = onLyrics, modifier = Modifier.size(52.dp)) {
+                Icon(
+                    AppIcons.Lyrics,
+                    contentDescription = "Letra",
+                    tint = Color.White.copy(alpha = 0.85f),
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+            IconButton(onClick = onQueue, modifier = Modifier.size(52.dp)) {
+                Icon(
+                    AppIcons.Queue,
+                    contentDescription = "Cola",
+                    tint = Color.White.copy(alpha = 0.85f),
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
         }
 
         // En modo inmersivo los botones están ocultos: esta capa recibe el toque (vuelve a la vista normal sin pausar)
