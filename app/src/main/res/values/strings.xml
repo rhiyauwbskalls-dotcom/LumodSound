@@ -1,4 +1,8 @@
 <resources>
+<<<<<<< HEAD
     <string name="app_name">LumodSound</string>
+=======
+    <string name="app_name">Sonaris</string>
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
     <string name="download_channel">Descargas</string>
 </resources>
