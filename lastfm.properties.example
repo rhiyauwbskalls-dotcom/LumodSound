@@ -1,4 +1,0 @@
-# Copia este archivo a app/src/main/assets/lastfm.properties (ese archivo no se sube a Git) y rellena tus claves.
-# Last.fm: créalas gratis en https://www.last.fm/api/account/create
-LASTFM_API_KEY=
-LASTFM_SECRET=
