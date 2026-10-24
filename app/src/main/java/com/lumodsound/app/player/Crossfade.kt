@@ -210,7 +210,11 @@ class Crossfader(
     private fun prepareOutgoing(positionMs: Long) {
         discardOutgoing()
         val item = player.currentMediaItem ?: return
+<<<<<<< HEAD
         val aux = ExoPlayer.Builder(context, NormalizingRenderersFactory(context))
+=======
+        val aux = ExoPlayer.Builder(context)
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
             .setMediaSourceFactory(mediaSourceFactory)
             .setAudioAttributes(
                 AudioAttributes.Builder()

@@ -19,6 +19,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+<<<<<<< HEAD
 import com.lumodsound.app.R
 import com.lumodsound.app.str
 
@@ -103,6 +104,90 @@ class DiscordPresence(private val context: Context) {
         val duration = if (p.duration > 0) p.duration else md.durationMs ?: 0L
         val snap = Snapshot(
             title = md.title?.toString() ?: str(R.string.untitled),
+=======
+
+/**
+ * Muestra en Discord lo que está sonando ("Escuchando LumodSound").
+ * Escucha directamente al reproductor del servicio, así sigue funcionando con la app cerrada.
+ */
+class DiscordPresence(private val context: Context) {
+
+    private class Snapshot(
+        val title: String,
+        val artist: String,
+        val url: String,
+        val thumb: String?,
+        val playing: Boolean,
+        val startMs: Long,
+        val durationMs: Long
+    )
+
+    private val store = DiscordStore.get(context)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val mutex = Mutex()
+
+    private var player: Player? = null
+    @Volatile private var gateway: DiscordGateway? = null
+    @Volatile private var gatewayToken: String? = null
+    private var job: Job? = null
+    private var failures = 0
+    private val imageCache = HashMap<String, String>()
+
+    private val listener = object : Player.Listener {
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = schedule()
+        override fun onIsPlayingChanged(isPlaying: Boolean) = schedule()
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) = schedule()
+        override fun onPlaybackStateChanged(playbackState: Int) = schedule()
+        override fun onPositionDiscontinuity(
+            oldPosition: Player.PositionInfo,
+            newPosition: Player.PositionInfo,
+            reason: Int
+        ) {
+            if (reason == Player.DISCONTINUITY_REASON_SEEK) schedule()
+        }
+    }
+
+    fun attach(p: Player) {
+        player = p
+        p.addListener(listener)
+        // Cualquier cambio en los ajustes (activar, cuenta, opciones) vuelve a sincronizar
+        scope.launch { store.settings.collect { schedule() } }
+    }
+
+    fun release() {
+        player?.removeListener(listener)
+        player = null
+        scope.cancel()
+        gateway?.close()
+        gateway = null
+    }
+
+    /** Junta varios eventos seguidos (cambio de canción + buffering + play) en una sola actualización. */
+    private fun schedule(delayMs: Long = 700) {
+        job?.cancel()
+        job = scope.launch {
+            delay(delayMs)
+            sync()
+        }
+    }
+
+    private suspend fun sync() {
+        val p = player ?: return
+        val s = store.settings.value
+        val item = p.currentMediaItem
+        val playing = p.playWhenReady &&
+            (p.playbackState == Player.STATE_READY || p.playbackState == Player.STATE_BUFFERING)
+
+        if (!s.enabled || !s.connected || s.appId.isBlank() || item == null || (!playing && s.hideWhenPaused)) {
+            stop()
+            return
+        }
+
+        val md = item.mediaMetadata
+        val duration = if (p.duration > 0) p.duration else md.durationMs ?: 0L
+        val snap = Snapshot(
+            title = md.title?.toString() ?: "Sin título",
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
             artist = md.artist?.toString().orEmpty(),
             url = md.extras?.getString("yt_url") ?: item.localConfiguration?.uri?.toString().orEmpty(),
             thumb = md.artworkUri?.toString(),

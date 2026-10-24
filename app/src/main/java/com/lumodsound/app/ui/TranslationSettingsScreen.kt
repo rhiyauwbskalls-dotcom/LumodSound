@@ -52,6 +52,7 @@ import com.lumodsound.app.data.TranslateResult
 import com.lumodsound.app.data.TranslationStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+<<<<<<< HEAD
 import com.lumodsound.app.R
 import com.lumodsound.app.str
 
@@ -383,6 +384,337 @@ private fun OpenRouterCatalogDialog(onPick: (String) -> Unit, onDismiss: () -> U
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(str(R.string.close)) } }
+=======
+
+/** Ajustes → "Letras traducción": motor (ML Kit o IA con tu propia API key), proveedor, API key y modelo. */
+@Composable
+fun TranslationSettingsScreen(store: TranslationStore, onBack: () -> Unit) {
+    val s by store.settings.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var testing by remember { mutableStateOf(false) }
+
+    SettingsScaffold(title = "Letras traducción", onBack = onBack) {
+        SettingsGroup("Motor de traducción") {
+            ChoiceRow(
+                title = "ML Kit",
+                subtitle = "En el teléfono, gratis y sin cuenta. Baja el idioma la primera vez.",
+                selected = s.engine == TranslateEngine.MLKIT,
+                onClick = { store.setEngine(TranslateEngine.MLKIT) }
+            )
+            ChoiceRow(
+                title = "IA con tu propia API",
+                subtitle = "Traducciones más naturales (jerga, expresiones). Necesitas tu API key.",
+                selected = s.engine == TranslateEngine.AI,
+                onClick = { store.setEngine(TranslateEngine.AI) }
+            )
+        }
+
+        if (s.engine == TranslateEngine.AI) {
+            SettingsGroup("Proveedor") {
+                AiProvider.values().forEach { p ->
+                    ChoiceRow(
+                        title = p.label,
+                        subtitle = null,
+                        selected = s.provider == p,
+                        onClick = { store.setProvider(p) }
+                    )
+                }
+            }
+
+            val isCustom = s.provider == AiProvider.CUSTOM
+
+            if (isCustom) {
+                SettingsGroup("Formato de la API") {
+                    ApiFormat.values().forEach { f ->
+                        ChoiceRow(
+                            title = f.label,
+                            subtitle = null,
+                            selected = s.customFormat == f,
+                            onClick = { store.setCustomFormat(f) }
+                        )
+                    }
+                }
+                SettingsGroup("Endpoint") {
+                    var endpoint by remember { mutableStateOf(s.customEndpoint) }
+                    Column(Modifier.padding(16.dp)) {
+                        Text(
+                            "Pega la URL completa, por ejemplo https://tu-servidor/v1/chat/completions. " +
+                                "Debe empezar con https://.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = endpoint,
+                            onValueChange = {
+                                endpoint = it
+                                store.setCustomEndpoint(it)
+                            },
+                            label = { Text("URL del endpoint") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+
+            SettingsGroup(if (isCustom) "API key (opcional)" else "API key de ${s.provider.label}") {
+                var input by remember(s.provider) { mutableStateOf("") }
+                var visible by remember(s.provider) { mutableStateOf(false) }
+                val clipboard = LocalClipboardManager.current
+                Column(Modifier.padding(16.dp)) {
+                    Text(
+                        when {
+                            s.apiKey.isNotBlank() -> "Guardada, cifrada en el teléfono."
+                            isCustom -> "Solo si tu servicio la pide."
+                            else -> "Consíguela en ${s.provider.keyHint}"
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (s.apiKey.isNotBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            if (visible) s.apiKey else maskKey(s.apiKey),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = input,
+                        onValueChange = { input = it },
+                        label = { Text(if (s.apiKey.isNotBlank()) "Pegar una nueva API key" else "Pegar API key") },
+                        singleLine = true,
+                        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            enabled = input.isNotBlank(),
+                            onClick = {
+                                if (store.setApiKey(s.provider, input)) {
+                                    input = ""
+                                    Toast.makeText(context, "API key guardada", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "No se pudo guardar de forma segura", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        ) { Text("Guardar") }
+                        TextButton(onClick = { visible = !visible }) { Text(if (visible) "Ocultar" else "Mostrar") }
+                    }
+                    if (s.apiKey.isNotBlank()) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(onClick = {
+                                clipboard.setText(AnnotatedString(s.apiKey))
+                                Toast.makeText(context, "API key copiada", Toast.LENGTH_SHORT).show()
+                            }) { Text("Copiar") }
+                            TextButton(onClick = {
+                                store.setApiKey(s.provider, "")
+                                Toast.makeText(context, "API key borrada", Toast.LENGTH_SHORT).show()
+                            }) { Text("Borrar") }
+                        }
+                    }
+                }
+            }
+
+            SettingsGroup("Modelo") {
+                val presets = s.provider.models
+                var custom by remember(s.provider) { mutableStateOf(s.model !in presets) }
+                var text by remember(s.provider) { mutableStateOf(if (s.model !in presets) s.model else "") }
+                presets.forEach { m ->
+                    ChoiceRow(
+                        title = m,
+                        subtitle = null,
+                        selected = !custom && s.model == m,
+                        onClick = {
+                            custom = false
+                            store.setModel(s.provider, m)
+                        }
+                    )
+                }
+                if (presets.isNotEmpty()) {
+                    ChoiceRow(
+                        title = "Otro (escribir manualmente)",
+                        subtitle = null,
+                        selected = custom,
+                        onClick = {
+                            custom = true
+                            if (text.isNotBlank()) store.setModel(s.provider, text)
+                        }
+                    )
+                }
+                var showCatalog by remember(s.provider) { mutableStateOf(false) }
+                if (s.provider == AiProvider.OPENROUTER) {
+                    TextButton(
+                        onClick = { showCatalog = true },
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    ) { Text("Ver catálogo de OpenRouter") }
+                }
+                if (showCatalog) {
+                    OpenRouterCatalogDialog(
+                        onPick = { id ->
+                            showCatalog = false
+                            custom = id !in presets
+                            text = if (id in presets) "" else id
+                            store.setModel(s.provider, id)
+                        },
+                        onDismiss = { showCatalog = false }
+                    )
+                }
+                if (custom) {
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = {
+                            text = it
+                            store.setModel(s.provider, it)
+                        },
+                        label = { Text("Nombre exacto del modelo") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().padding(16.dp)
+                    )
+                }
+            }
+
+            Button(
+                enabled = !testing && (if (isCustom) s.customEndpoint.isNotBlank() else s.apiKey.isNotBlank()),
+                onClick = {
+                    testing = true
+                    scope.launch {
+                        val r = AiTranslator.translate(listOf("I love you more than words can say"), "es", s)
+                        testing = false
+                        val msg = when (r) {
+                            is TranslateResult.Success -> "Funciona: “${r.lines.firstOrNull().orEmpty()}”"
+                            is TranslateResult.Error -> r.message
+                            else -> "No funcionó, revisa los datos de la conexión"
+                        }
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text(if (testing) "Probando…" else "Probar conexión") }
+        }
+    }
+}
+
+@Composable
+private fun ChoiceRow(title: String, subtitle: String?, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(selected = selected, onClick = null)
+        Spacer(Modifier.width(16.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            if (subtitle != null) {
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+        }
+    }
+}
+
+/** Lista de todos los modelos de OpenRouter, con búsqueda y filtro de gratis. */
+@Composable
+private fun OpenRouterCatalogDialog(onPick: (String) -> Unit, onDismiss: () -> Unit) {
+    var models by remember { mutableStateOf<List<OpenRouterModel>?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var reload by remember { mutableIntStateOf(0) }
+    var query by remember { mutableStateOf("") }
+    var freeOnly by remember { mutableStateOf(false) }
+
+    LaunchedEffect(reload) {
+        models = null
+        error = null
+        try {
+            models = OpenRouterCatalog.fetch(force = reload > 0)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            error = "No se pudo cargar el catálogo (¿sin internet?)"
+        }
+    }
+
+    val filtered = remember(models, query, freeOnly) {
+        val q = query.trim().lowercase()
+        models.orEmpty().filter { m ->
+            (!freeOnly || m.free) && (q.isEmpty() || m.id.lowercase().contains(q) || m.name.lowercase().contains(q))
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Catálogo de OpenRouter") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    label = { Text("Buscar modelo") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                FilterChip(
+                    selected = freeOnly,
+                    onClick = { freeOnly = !freeOnly },
+                    label = { Text("Solo gratis") }
+                )
+                Spacer(Modifier.height(8.dp))
+                when {
+                    error != null -> {
+                        Text(error.orEmpty(), color = MaterialTheme.colorScheme.error)
+                        TextButton(onClick = { reload++ }) { Text("Reintentar") }
+                    }
+                    models == null -> Row(
+                        Modifier.fillMaxWidth().padding(24.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) { CircularProgressIndicator() }
+                    filtered.isEmpty() -> Text(
+                        "Sin resultados",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    else -> LazyColumn(Modifier.heightIn(max = 340.dp)) {
+                        items(filtered, key = { it.id }) { m ->
+                            Column(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onPick(m.id) }
+                                    .padding(vertical = 10.dp)
+                            ) {
+                                Text(
+                                    if (m.free) "${m.name} · gratis" else m.name,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    m.id,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } }
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
     )
 }
 

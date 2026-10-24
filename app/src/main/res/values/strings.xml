@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">LumodSound</string>
@@ -414,4 +415,13 @@
     <string name="lyr_status_error">Error: %1$s</string>
     <string name="lyr_status_idle">Not queried yet</string>
     <string name="lyr_status_skipped">Not needed (already found)</string>
+=======
+<resources>
+<<<<<<< HEAD
+    <string name="app_name">LumodSound</string>
+=======
+    <string name="app_name">Sonaris</string>
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
+    <string name="download_channel">Descargas</string>
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
 </resources>

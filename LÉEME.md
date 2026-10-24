@@ -44,6 +44,7 @@ autenticada con tu propia cookie de sesión `sp_dc`. Ten en cuenta lo siguiente:
 ## Características
 
 **Exploración y reproducción**
+<<<<<<< HEAD
 - Interfaz en inglés y español (sigue el idioma de tu teléfono)
 - Pantalla de inicio con recomendaciones de YouTube Music, chips de ánimo/género y una cuadrícula de acceso rápido con tus canciones recientes
 - Búsqueda de canciones y álbumes; páginas de artista y de álbum
@@ -138,6 +139,99 @@ Se agradece ayuda con cualquiera de estas tareas:
 3. Asegúrate de que la app compila (`gradle assembleDebug`) antes de abrir el pull request.
 4. No subas claves personales, cookies ni tokens.
 5. Traducciones: los textos de la app están en `app/src/main/res/values/strings.xml` (inglés, el idioma por defecto) y `values-es/strings.xml` (español). Para añadir un idioma, copia `values/strings.xml` a `values-xx/strings.xml` (por ejemplo `values-pt`) y traduce los valores, conservando los marcadores `%1$s`.
+=======
+- Pantalla de inicio con recomendaciones de YouTube Music, chips de ánimo/género y una cuadrícula de acceso rápido con tus canciones recientes
+- Búsqueda de canciones y álbumes; páginas de artista y de álbum
+- Reproducción en segundo plano con notificación multimedia y controles en la pantalla de bloqueo (Media3)
+- Cola inteligente con radio infinita, radio de artista, reordenamiento por arrastre e historial
+- Modo aleatorio, repetición, temporizador de sueño y crossfade
+
+**Biblioteca y modo sin conexión**
+- Favoritos y listas de reproducción guardados en tu dispositivo
+- Caché de audio (de tamaño configurable) para que una canción repetida empiece al instante
+- Las letras y el Canvas de Spotify también se guardan en caché: cargan al instante y funcionan sin internet (cada caché se borra en *Ajustes → Almacenamiento*)
+- Descargas permanentes, además de una tarjeta «Caché» en la biblioteca con las canciones descargadas por completo
+- Opcional: enviar tu historial de escucha a tu cuenta de YouTube Music para mejorar las recomendaciones (desactivado por defecto)
+
+**Letras**
+- Letras sincronizadas con el tiempo (LRCLIB), con toque para saltar a esa parte, mostradas a pantalla completa
+- Traducción de letras, ya sea en el dispositivo (ML Kit) o con la clave de API de tu propio proveedor de IA
+  (Claude, ChatGPT, Gemini, OpenRouter, Pollinations o un endpoint personalizado)
+
+**Integraciones (todas opcionales)**
+- Discord Rich Presence
+- Scrobbling en Last.fm
+- Letras sincronizadas y Canvas de Spotify — consulta la advertencia anterior
+
+**Apariencia**
+- Tema oscuro por defecto con un único color de acento (fácil de cambiar en `ui/Theme.kt`) y un modo Material You opcional
+- Pantallas del reproductor, la cola y las letras teñidas con el color de la portada
+- Mini reproductor y barra de navegación flotantes que se ocultan al desplazarse
+
+## Capturas de pantalla
+
+<p align="center">
+  <img src="screenshots/player.jpg" width="260" alt="Pantalla del reproductor">
+  <img src="screenshots/lyrics.jpg" width="260" alt="Pantalla de letras sincronizadas">
+</p>
+
+_¡Se agradecen más capturas de pantalla!_
+
+## Requisitos
+
+- Android 8.1 (API 27) o superior
+- Para compilar: Android Studio Koala o superior, JDK 17
+
+## Compilación
+
+1. Clona el repositorio y abre la carpeta en Android Studio.
+2. Deja que Gradle se sincronice (Android Studio descarga por sí mismo los archivos faltantes del wrapper de Gradle).
+3. Ejecuta la configuración `app` en un dispositivo o emulador.
+
+**Last.fm (opcional):** las claves de Last.fm no están en el código. Crea una cuenta de API gratis en
+<https://www.last.fm/api/account/create>, copia `lastfm.properties.example` a `app/src/main/assets/lastfm.properties` y rellena
+`LASTFM_API_KEY` y `LASTFM_SECRET`. Sin ellas la app funciona igual, pero el scrobbling de Last.fm no estará disponible.
+Para la compilación con GitHub Actions, añade esos mismos dos nombres como secretos del repositorio (*Settings → Secrets and variables → Actions*).
+
+**¿Sin computadora?** Sube el proyecto a GitHub. El workflow de `.github/workflows/build.yml` compila un APK de depuración:
+*Actions → Build APK → Artifacts*.
+
+Si la reproducción o la exploración dejan de funcionar de repente, probablemente YouTube cambió algo. Sube la versión de
+`com.github.TeamNewPipe:NewPipeExtractor` en `app/build.gradle.kts` y vuelve a intentarlo.
+
+## Privacidad y seguridad
+
+- LumodSound **no incluye librerías de analíticas, anuncios ni reporte de fallos**, y no tiene servidor propio.
+- La app se comunica directamente con los servicios que usas: YouTube/Google, LRCLIB y (solo si los activas) Last.fm, Discord,
+  Spotify y el proveedor de IA que configures. La traducción en el dispositivo descarga modelos de idioma la primera vez que la usas.
+- Las credenciales de Discord y Spotify se cifran en reposo con AES-256-GCM usando una clave guardada en el Android Keystore.
+- Las cookies de tu sesión de YouTube Music se guardan en el almacenamiento privado de la app **sin cifrado adicional**, así que alguien con
+  acceso root a tu teléfono podría leerlas. Cerrar sesión las elimina.
+- Nunca compartas tus cookies, tokens o claves de API en issues ni capturas de pantalla.
+
+## Consejos de batería
+
+Las letras, las pantallas animadas y la reproducción en segundo plano consumen algo de batería. Si notas un consumo alto, abre
+*Ajustes → Batería* dentro de la app para ir a los ajustes de batería de Android para LumodSound, y evita dejar la pantalla de letras
+abierta durante periodos largos.
+
+## Estado del proyecto y hoja de ruta
+
+Se agradece ayuda con cualquiera de estas tareas:
+
+- [x] Añadir capturas de pantalla a este README
+- [ ] Rediseñar las pantallas de Biblioteca y Búsqueda para que coincidan con el resto de la app
+- [ ] Mover las cadenas de la interfaz en español escritas directamente en el código a `strings.xml` y añadir traducciones
+- [ ] Firma de versiones y releases etiquetados
+- [ ] Pruebas
+
+## Cómo contribuir
+
+1. Abre primero un issue para cambios grandes, así podemos conversarlo.
+2. Haz un fork del repositorio, crea una rama y mantén cada pull request centrado en una sola cosa.
+3. Asegúrate de que la app compila (`gradle assembleDebug`) antes de abrir el pull request.
+4. No subas claves personales, cookies ni tokens.
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
 
 ## Licencia
 

@@ -1,5 +1,6 @@
 package com.lumodsound.app.data
 
+<<<<<<< HEAD
 import com.lumodsound.app.R
 import com.lumodsound.app.str
 import kotlinx.coroutines.Dispatchers
@@ -135,6 +136,119 @@ class LrcLibClient {
                 if (r.code != 404) lastErrorCode = r.code
                 return null
             }
+=======
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONArray
+import org.json.JSONObject
+import java.net.URLEncoder
+import java.util.concurrent.TimeUnit
+import kotlin.math.abs
+
+data class LyricLine(val timeMs: Long, val text: String)
+
+sealed interface LyricsState {
+    data object Loading : LyricsState
+    data class Synced(val lines: List<LyricLine>) : LyricsState
+    data class Plain(val lines: List<String>) : LyricsState
+    data object NotFound : LyricsState
+    data object Instrumental : LyricsState
+    data object Error : LyricsState
+}
+
+/** Cliente de https://lrclib.net (letras sincronizadas en formato LRC). */
+class LrcLibClient {
+
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .build()
+
+    suspend fun fetch(rawTitle: String, rawArtist: String, durationSec: Long): LyricsState =
+        withContext(Dispatchers.IO) {
+            val artist = cleanArtist(rawArtist)
+            val title = cleanTitle(rawTitle, artist)
+            lookup(title, artist, durationSec) ?: LyricsState.NotFound
+        }
+
+    private fun lookup(title: String, artist: String, durationSec: Long): LyricsState? {
+        // 1) coincidencia exacta
+        val exactUrl = buildString {
+            append("$BASE/get?track_name=${enc(title)}&artist_name=${enc(artist)}")
+            if (durationSec > 0) append("&duration=$durationSec")
+        }
+        httpGet(exactUrl)?.let { body ->
+            parseObject(body)?.toState()?.let { return it }
+        }
+        // 2) búsqueda por campos
+        searchBest("$BASE/search?track_name=${enc(title)}&artist_name=${enc(artist)}", durationSec)
+            ?.let { return it }
+        // 3) búsqueda libre
+        searchBest("$BASE/search?q=${enc("$title $artist")}", durationSec)
+            ?.let { return it }
+        return null
+    }
+
+    /** Del listado elige la mejor: primero sincronizada, y la de duración más cercana. */
+    private fun searchBest(url: String, durationSec: Long): LyricsState? {
+        val body = httpGet(url) ?: return null
+        val arr = try {
+            JSONArray(body)
+        } catch (e: Exception) {
+            return null
+        }
+        var best: LyricsState? = null
+        var bestRank = Int.MAX_VALUE
+        var bestDiff = Double.MAX_VALUE
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i) ?: continue
+            val diff = if (durationSec > 0) abs(o.optDouble("duration", 0.0) - durationSec) else 0.0
+            if (durationSec > 0 && diff > 10.0) continue
+            val st = o.toState() ?: continue
+            val rank = when (st) {
+                is LyricsState.Synced -> 0
+                is LyricsState.Plain -> 1
+                else -> 2
+            }
+            if (rank < bestRank || (rank == bestRank && diff < bestDiff)) {
+                best = st
+                bestRank = rank
+                bestDiff = diff
+            }
+        }
+        return best
+    }
+
+    private fun JSONObject.str(name: String): String =
+        if (isNull(name)) "" else optString(name, "")
+
+    private fun JSONObject.toState(): LyricsState? {
+        if (optBoolean("instrumental", false)) return LyricsState.Instrumental
+        val synced = parseLrc(str("syncedLyrics"))
+        if (synced.isNotEmpty()) return LyricsState.Synced(synced)
+        val plain = str("plainLyrics").lines().map { it.trim() }.filter { it.isNotEmpty() }
+        if (plain.isNotEmpty()) return LyricsState.Plain(plain)
+        return null
+    }
+
+    private fun parseObject(body: String): JSONObject? =
+        try {
+            JSONObject(body)
+        } catch (e: Exception) {
+            null
+        }
+
+    /** null si el servidor responde 404 u otro código de error; lanza IOException si no hay red. */
+    private fun httpGet(url: String): String? {
+        val req = Request.Builder()
+            .url(url)
+            .header("User-Agent", "LumodSound/1.0 (proyecto personal)")
+            .build()
+        client.newCall(req).execute().use { r ->
+            if (!r.isSuccessful) return null
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
             return r.body?.string()
         }
     }

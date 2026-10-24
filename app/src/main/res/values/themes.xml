@@ -1,6 +1,14 @@
 <resources>
     <!-- Fondo de la ventana = fondo de la app, para que no haya destello blanco/negro al abrir -->
+<<<<<<< HEAD
     <style name="Theme.LumodSound" parent="android:Theme.Material.Light.NoActionBar">
+=======
+<<<<<<< HEAD
+    <style name="Theme.LumodSound" parent="android:Theme.Material.Light.NoActionBar">
+=======
+    <style name="Theme.YTMusic" parent="android:Theme.Material.Light.NoActionBar">
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
         <item name="android:windowBackground">@color/window_background</item>
     </style>
 </resources>

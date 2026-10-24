@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+<<<<<<< HEAD
 import com.lumodsound.app.R
 import com.lumodsound.app.str
 
@@ -205,6 +206,168 @@ fun SpotifyLoginScreen(onSpDc: (String) -> Unit, onClose: () -> Unit) {
                     // Sesión limpia: cookies, almacenamiento y caché viejos pueden dejar la página de acceso en blanco
                     resetSession(ctx, main) {
                         status = str(R.string.opening_accounts_spotify_com)
+=======
+
+// Sin "/en/": es la URL que usa ArchiveTune y funciona en su WebView.
+private const val SPOTIFY_LOGIN_URL = "https://accounts.spotify.com/login?continue=https%3A%2F%2Fopen.spotify.com%2F"
+
+// User-Agent de Chrome móvil normal (sin la marca "; wv" que delata a un WebView).
+private const val LOGIN_USER_AGENT =
+    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+
+/**
+ * Inicio de sesión de Spotify en un WebView, como el de ArchiveTune: sesión limpia antes de empezar, ventanas
+ * emergentes (Google/Facebook/captcha), y la cookie `sp_dc` se busca en todos los dominios de Spotify. Arriba se
+ * muestra el estado de la carga para ver por qué una página no abre. La contraseña nunca la ve la app.
+ */
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+fun SpotifyLoginScreen(onSpDc: (String) -> Unit, onClose: () -> Unit) {
+    val currentOnSpDc by rememberUpdatedState(onSpDc)
+    var status by remember { mutableStateOf("Preparando el inicio de sesión…") }
+    var active by remember { mutableStateOf<WebView?>(null) }
+    BackHandler {
+        val w = active
+        if (w != null && w.canGoBack()) w.goBack() else onClose()
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
+    ) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) { detectTapGestures { } }
+                .statusBarsPadding()
+        ) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onClose) { Icon(Icons.Default.Close, contentDescription = "Cerrar") }
+                Text("Iniciar sesión en Spotify", style = MaterialTheme.typography.titleMedium)
+            }
+            Text(
+                status,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+            AndroidView(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                factory = { ctx ->
+                    val container = FrameLayout(ctx)
+                    var delivered = false
+
+                    fun capture(url: String?): Boolean {
+                        if (delivered) return true
+                        val spDc = readSpDc(url) ?: return false
+                        delivered = true
+                        CookieManager.getInstance().flush()
+                        currentOnSpDc(spDc)
+                        return true
+                    }
+
+                    fun newClient(): WebViewClient = object : WebViewClient() {
+                        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
+                            shouldOverride(view, request.url?.toString(), ::capture)
+
+                        @Deprecated("Deprecated in Java")
+                        override fun shouldOverrideUrlLoading(view: WebView, url: String?): Boolean =
+                            shouldOverride(view, url, ::capture)
+
+                        override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
+                            status = "Cargando ${hostOf(url)}…"
+                            capture(url)
+                        }
+
+                        override fun onPageFinished(view: WebView, url: String?) {
+                            status = "Página cargada: ${hostOf(url)}"
+                            capture(url)
+                        }
+
+                        override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                            if (request.isForMainFrame) {
+                                status = "No cargó ${hostOf(request.url?.toString())}: ${error.description} (${error.errorCode})"
+                            }
+                        }
+
+                        override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, errorResponse: WebResourceResponse) {
+                            if (request.isForMainFrame) {
+                                status = "${hostOf(request.url?.toString())} respondió HTTP ${errorResponse.statusCode}"
+                            }
+                        }
+                    }
+
+                    val main = WebView(ctx)
+                    fun configure(w: WebView) {
+                        w.settings.apply {
+                            javaScriptEnabled = true
+                            domStorageEnabled = true
+                            javaScriptCanOpenWindowsAutomatically = true
+                            setSupportMultipleWindows(true)
+                            setSupportZoom(true)
+                            builtInZoomControls = true
+                            displayZoomControls = false
+                            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+                            userAgentString = LOGIN_USER_AGENT
+                        }
+                        CookieManager.getInstance().setAcceptCookie(true)
+                        CookieManager.getInstance().setAcceptThirdPartyCookies(w, true)
+                    }
+
+                    fun closePopups() {
+                        for (i in container.childCount - 1 downTo 0) {
+                            val child = container.getChildAt(i) as? WebView ?: continue
+                            if (child !== main) {
+                                child.stopLoading()
+                                container.removeView(child)
+                                child.destroy()
+                            }
+                        }
+                        active = main
+                    }
+
+                    configure(main)
+                    main.webViewClient = newClient()
+                    main.webChromeClient = object : WebChromeClient() {
+                        override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
+                            closePopups()
+                            val popup = WebView(view.context)
+                            configure(popup)
+                            popup.webViewClient = newClient()
+                            popup.webChromeClient = object : WebChromeClient() {
+                                override fun onCloseWindow(window: WebView) {
+                                    container.removeView(window)
+                                    window.destroy()
+                                    active = main
+                                }
+                            }
+                            val transport = resultMsg.obj as? WebView.WebViewTransport ?: return false
+                            container.addView(
+                                popup,
+                                FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                            )
+                            popup.bringToFront()
+                            popup.requestFocus()
+                            active = popup
+                            transport.webView = popup
+                            resultMsg.sendToTarget()
+                            return true
+                        }
+
+                        override fun onCloseWindow(window: WebView) {
+                            closePopups()
+                        }
+                    }
+                    container.addView(
+                        main,
+                        FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                    )
+                    active = main
+                    // Sesión limpia: cookies, almacenamiento y caché viejos pueden dejar la página de acceso en blanco
+                    resetSession(ctx, main) {
+                        status = "Abriendo accounts.spotify.com…"
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
                         main.loadUrl(SPOTIFY_LOGIN_URL)
                     }
                     container
