@@ -1,0 +1,65 @@
+version = 2
+
+[module]
+type = "android-app"
+name = "app"
+languageLevel = "JAVA_17"
+output = "build/classes"
+
+[sourceSets.androidTest]
+scope = "TEST_IMPLEMENTATION"
+java = ["src/androidTest/java", "src/androidTest/kotlin"]
+resources = ["src/androidTest/resources"]
+
+[sourceSets.debug]
+scope = "IMPLEMENTATION"
+aidl = ["src/debug/aidl"]
+assets = ["src/debug/assets"]
+java = ["src/debug/java", "src/debug/kotlin"]
+jniLibs = ["src/debug/jniLibs"]
+res = ["src/debug/res"]
+resources = ["src/debug/resources"]
+
+[sourceSets.main]
+scope = "IMPLEMENTATION"
+aidl = ["src/main/aidl"]
+assets = ["src/main/assets"]
+java = ["src/main/java", "src/main/kotlin"]
+jniLibs = ["src/main/jniLibs"]
+res = ["src/main/res"]
+resources = ["src/main/resources"]
+
+[sourceSets.release]
+scope = "IMPLEMENTATION"
+aidl = ["src/release/aidl"]
+assets = ["src/release/assets"]
+java = ["src/release/java", "src/release/kotlin"]
+jniLibs = ["src/release/jniLibs"]
+res = ["src/release/res"]
+resources = ["src/release/resources"]
+
+[sourceSets.test]
+scope = "TEST_IMPLEMENTATION"
+java = ["src/test/java", "src/test/kotlin"]
+resources = ["src/test/resources"]
+
+[dependencies]
+implementation = [{ platform = "androidx.compose:compose-bom:2026.09.00" }, "com.github.TeamNewPipe:NewPipeExtractor:v0.26.5", "com.squareup.okhttp3:okhttp:4.12.0", "androidx.media3:media3-exoplayer:1.4.1", "androidx.media3:media3-session:1.4.1", "androidx.compose.ui:ui", "androidx.compose.ui:ui-tooling-preview", "androidx.compose.material3:material3", "androidx.compose.material:material-icons-extended", "androidx.activity:activity-compose:1.13.0", "androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0", "androidx.lifecycle:lifecycle-runtime-compose:2.11.0", "androidx.core:core-ktx:1.19.1", "io.coil-kt:coil-compose:2.7.0", "io.github.kyant0:backdrop:2.0.1", "com.google.mlkit:translate:17.0.3", "com.google.mlkit:language-id:17.0.6", "androidx.palette:palette:1.0.0", "kotlin-stdlib"]
+
+[dependencies.debug]
+implementation = ["androidx.compose.ui:ui-tooling"]
+
+[android]
+namespace = "com.lumodsound.app"
+compileSdk = 37
+minSdk = 27
+targetSdk = 34
+manifest = "src/main/AndroidManifest.xml"
+versionCode = 1
+versionName = "1.0"
+isApplication = true
+manifestPlaceholders = []
+buildConfigFields = []
+buildTypes = [{ name = "debug", debuggable = true, minifyEnabled = false, shrinkResources = false }, { name = "release", debuggable = false, minifyEnabled = false, shrinkResources = false, proguardFiles = ["proguard-android-optimize.txt", "proguard-rules.pro"] }]
+compose = true
+buildConfig = false
