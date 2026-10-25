@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sin actualización periódica (updatePeriodMillis=0): el widget solo se redibuja cuando cambia la canción o el estado -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="70dp"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="70dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="1"
+    android:resizeMode="horizontal"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/widget_player"
+    android:widgetCategory="home_screen"
+    android:description="@string/widget_description" />
