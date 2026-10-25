@@ -11,6 +11,7 @@ import org.json.JSONObject
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
+<<<<<<< HEAD
 import com.lumodsound.app.R
 import com.lumodsound.app.str
 
@@ -69,6 +70,125 @@ object DiscordAuth {
         }
         val access = json.optString("access_token")
         if (access.isBlank()) return str(R.string.discord_didn_t_return_the)
+=======
+<<<<<<< HEAD
+import com.lumodsound.app.R
+import com.lumodsound.app.str
+
+/**
+ * Inicio de sesión con OAuth2 + PKCE: se abre el navegador, Discord redirige a
+ * [REDIRECT_URI] con un código y ese código se cambia por un token de acceso.
+ * La app de Discord debe ser un "Public Client" y tener registrada esa URL de redirección.
+ */
+object DiscordAuth {
+    const val REDIRECT_URI = "ytmusicdiscord://oauth2/callback"
+    private const val SCOPES = "openid sdk.social_layer_presence"
+    private const val TOKEN_URL = "https://discord.com/api/v10/oauth2/token"
+
+    private val client = OkHttpClient.Builder().callTimeout(20, TimeUnit.SECONDS).build()
+
+    /** Abre el navegador con la pantalla de autorización de Discord. */
+    fun start(context: Context, clientId: String) {
+        val verifier = randomUrlSafe(64)
+        val state = randomUrlSafe(16)
+        val challenge = Base64.encodeToString(
+            MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray()),
+            URL_SAFE
+        )
+        DiscordStore.get(context).savePending(PendingAuth(clientId, verifier, state))
+
+        val url = Uri.parse("https://discord.com/oauth2/authorize").buildUpon()
+            .appendQueryParameter("client_id", clientId)
+            .appendQueryParameter("response_type", "code")
+            .appendQueryParameter("redirect_uri", REDIRECT_URI)
+            .appendQueryParameter("scope", SCOPES)
+            .appendQueryParameter("state", state)
+            .appendQueryParameter("code_challenge_method", "S256")
+            .appendQueryParameter("code_challenge", challenge)
+            .build()
+        context.startActivity(Intent(Intent.ACTION_VIEW, url).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+
+    /** Cambia el código por los tokens y deja la cuenta conectada. Devuelve un mensaje de error, o null si salió bien. */
+    fun complete(context: Context, code: String, state: String?): String? {
+        val store = DiscordStore.get(context)
+        val pending = store.takePending() ?: return str(R.string.there_was_no_sign_in)
+        if (state != pending.state) return str(R.string.invalid_discord_response)
+
+        val (status, json) = post(
+            pending.clientId,
+            "grant_type" to "authorization_code",
+            "code" to code,
+            "redirect_uri" to REDIRECT_URI,
+            "code_verifier" to pending.verifier
+        )
+        if (status !in 200..299 || json == null) {
+            val reason = json?.optString("error_description")?.takeIf { it.isNotBlank() }
+                ?: json?.optString("error")?.takeIf { it.isNotBlank() }
+                ?: "HTTP $status"
+            return str(R.string.discord_rejected_the_sign_in, reason)
+        }
+        val access = json.optString("access_token")
+        if (access.isBlank()) return str(R.string.discord_didn_t_return_the)
+=======
+
+/**
+ * Inicio de sesión con OAuth2 + PKCE: se abre el navegador, Discord redirige a
+ * [REDIRECT_URI] con un código y ese código se cambia por un token de acceso.
+ * La app de Discord debe ser un "Public Client" y tener registrada esa URL de redirección.
+ */
+object DiscordAuth {
+    const val REDIRECT_URI = "ytmusicdiscord://oauth2/callback"
+    private const val SCOPES = "openid sdk.social_layer_presence"
+    private const val TOKEN_URL = "https://discord.com/api/v10/oauth2/token"
+
+    private val client = OkHttpClient.Builder().callTimeout(20, TimeUnit.SECONDS).build()
+
+    /** Abre el navegador con la pantalla de autorización de Discord. */
+    fun start(context: Context, clientId: String) {
+        val verifier = randomUrlSafe(64)
+        val state = randomUrlSafe(16)
+        val challenge = Base64.encodeToString(
+            MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray()),
+            URL_SAFE
+        )
+        DiscordStore.get(context).savePending(PendingAuth(clientId, verifier, state))
+
+        val url = Uri.parse("https://discord.com/oauth2/authorize").buildUpon()
+            .appendQueryParameter("client_id", clientId)
+            .appendQueryParameter("response_type", "code")
+            .appendQueryParameter("redirect_uri", REDIRECT_URI)
+            .appendQueryParameter("scope", SCOPES)
+            .appendQueryParameter("state", state)
+            .appendQueryParameter("code_challenge_method", "S256")
+            .appendQueryParameter("code_challenge", challenge)
+            .build()
+        context.startActivity(Intent(Intent.ACTION_VIEW, url).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+
+    /** Cambia el código por los tokens y deja la cuenta conectada. Devuelve un mensaje de error, o null si salió bien. */
+    fun complete(context: Context, code: String, state: String?): String? {
+        val store = DiscordStore.get(context)
+        val pending = store.takePending() ?: return "No había un inicio de sesión en curso"
+        if (state != pending.state) return "Respuesta de Discord no válida"
+
+        val (status, json) = post(
+            pending.clientId,
+            "grant_type" to "authorization_code",
+            "code" to code,
+            "redirect_uri" to REDIRECT_URI,
+            "code_verifier" to pending.verifier
+        )
+        if (status !in 200..299 || json == null) {
+            val reason = json?.optString("error_description")?.takeIf { it.isNotBlank() }
+                ?: json?.optString("error")?.takeIf { it.isNotBlank() }
+                ?: "HTTP $status"
+            return "Discord rechazó el inicio de sesión ($reason)"
+        }
+        val access = json.optString("access_token")
+        if (access.isBlank()) return "Discord no devolvió el token"
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
 
         val username = DiscordApi.fetchUsername("Bearer $access") ?: "Discord"
         store.connect(access, json.optString("refresh_token").ifBlank { null }, json.optLong("expires_in", 604800), username)

@@ -13,6 +13,7 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
         with:
+<<<<<<< HEAD
           gradle-version: "9.8.1"
       - name: Claves de Last.fm
         env:
@@ -26,3 +27,132 @@ jobs:
         with:
           name: LumodSound-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+=======
+<<<<<<< HEAD
+          gradle-version: "9.8.1"
+      - name: Claves de Last.fm
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          mkdir -p app/src/main/assets
+          printf 'LASTFM_API_KEY=%s\nLASTFM_SECRET=%s\n' "$LASTFM_API_KEY" "$LASTFM_SECRET" > app/src/main/assets/lastfm.properties
+      - run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LumodSound-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+=======
+          gradle-version: "8.7"
+<<<<<<< HEAD
+      - name: Claves de Last.fm
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          mkdir -p app/src/main/assets
+          printf 'LASTFM_API_KEY=%s\nLASTFM_SECRET=%s\n' "$LASTFM_API_KEY" "$LASTFM_SECRET" > app/src/main/assets/lastfm.properties
+      - run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LumodSound-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+=======
+<<<<<<< HEAD
+      - name: Claves de Last.fm
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          mkdir -p app/src/main/assets
+          printf 'LASTFM_API_KEY=%s\nLASTFM_SECRET=%s\n' "$LASTFM_API_KEY" "$LASTFM_SECRET" > app/src/main/assets/lastfm.properties
+      - run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sonaris-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+=======
+<<<<<<< HEAD
+      - name: Claves de Last.fm
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          mkdir -p app/src/main/assets
+          printf 'LASTFM_API_KEY=%s\nLASTFM_SECRET=%s\n' "$LASTFM_API_KEY" "$LASTFM_SECRET" > app/src/main/assets/lastfm.properties
+      - run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sonaris-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+=======
+<<<<<<< HEAD
+      - name: Claves de Last.fm
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          mkdir -p app/src/main/assets
+          printf 'LASTFM_API_KEY=%s\nLASTFM_SECRET=%s\n' "$LASTFM_API_KEY" "$LASTFM_SECRET" > app/src/main/assets/lastfm.properties
+      - run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sonaris-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+=======
+<<<<<<< HEAD
+      - name: Claves de Last.fm
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          mkdir -p app/src/main/assets
+          printf 'LASTFM_API_KEY=%s\nLASTFM_SECRET=%s\n' "$LASTFM_API_KEY" "$LASTFM_SECRET" > app/src/main/assets/lastfm.properties
+      - run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sonaris-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+=======
+<<<<<<< HEAD
+      - name: Claves de Last.fm
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          mkdir -p app/src/main/assets
+          printf 'LASTFM_API_KEY=%s\nLASTFM_SECRET=%s\n' "$LASTFM_API_KEY" "$LASTFM_SECRET" > app/src/main/assets/lastfm.properties
+      - run: gradle assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sonaris-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+=======
+      - run: gradle assembleDebug --no-daemon
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Sonaris-debug-apk
+<<<<<<< HEAD
+          path: app/build/outputs/apk/debug/*.apk
+=======
+<<<<<<< HEAD
+          path: app/build/outputs/apk/debug/*.apk
+=======
+<<<<<<< HEAD
+          path: app/build/outputs/apk/debug/*.apk
+=======
+          path: app/build/outputs/apk/debug/app-debug.apk
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/Sonaris
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound

@@ -14,9 +14,18 @@ class LumodSoundApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+<<<<<<< HEAD
         AppText.base = this
         LanguageSettings.load(this)
         AppText.refresh()
+=======
+<<<<<<< HEAD
+        AppText.base = this
+        LanguageSettings.load(this)
+        AppText.refresh()
+=======
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
         NewPipe.init(AppDownloader())
     }
 

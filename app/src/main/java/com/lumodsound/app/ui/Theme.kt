@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
  * Paleta propia de la app (negros profundos y grises neutros, un solo color de acento).
  * Para cambiar el color de marca basta con tocar [AccentDark] y [AccentLight].
  */
+<<<<<<< HEAD
 private val AccentDark = Color(0xFF3DDC97)
 private val AccentLight = Color(0xFF087A4F)
 
@@ -62,6 +63,95 @@ private val LightColors = lightColorScheme(
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFC8F7E0),
     onPrimaryContainer = Color(0xFF00391F),
+=======
+<<<<<<< HEAD
+private val AccentDark = Color(0xFF3DDC97)
+private val AccentLight = Color(0xFF087A4F)
+
+private val DarkColors = darkColorScheme(
+    primary = AccentDark,
+    onPrimary = Color(0xFF000000),
+    primaryContainer = Color(0xFF0F3D2B),
+    onPrimaryContainer = Color(0xFFB7F5D8),
+
+    secondary = Color(0xFFCFCFCF),
+    onSecondary = Color(0xFF000000),
+    secondaryContainer = Color(0xFF2F2F2F),
+    onSecondaryContainer = Color(0xFFFFFFFF),
+
+    tertiary = Color(0xFF8FB8FF),
+    onTertiary = Color(0xFF00203F),
+    tertiaryContainer = Color(0xFF1E2F4D),
+    onTertiaryContainer = Color(0xFFC9DDFF),
+
+    background = Color(0xFF121212),
+    onBackground = Color(0xFFFFFFFF),
+    surface = Color(0xFF121212),
+    onSurface = Color(0xFFFFFFFF),
+    surfaceVariant = Color(0xFF282828),
+    onSurfaceVariant = Color(0xFFB3B3B3),
+    surfaceTint = Color.Transparent,
+
+    surfaceContainerLowest = Color(0xFF0A0A0A),
+    surfaceContainerLow = Color(0xFF161616),
+    surfaceContainer = Color(0xFF1A1A1A),
+    surfaceContainerHigh = Color(0xFF242424),
+    surfaceContainerHighest = Color(0xFF2E2E2E),
+
+    outline = Color(0xFF727272),
+    outlineVariant = Color(0xFF3A3A3A)
+)
+
+private val LightColors = lightColorScheme(
+    primary = AccentLight,
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFC8F7E0),
+    onPrimaryContainer = Color(0xFF00391F),
+=======
+private val AccentDark = Color(0xFFFF5C57)
+private val AccentLight = Color(0xFFD63B37)
+
+private val DarkColors = darkColorScheme(
+    primary = AccentDark,
+    onPrimary = Color(0xFF000000),
+    primaryContainer = Color(0xFF3D1A19),
+    onPrimaryContainer = Color(0xFFFFB3AF),
+
+    secondary = Color(0xFFCFCFCF),
+    onSecondary = Color(0xFF000000),
+    secondaryContainer = Color(0xFF2F2F2F),
+    onSecondaryContainer = Color(0xFFFFFFFF),
+
+    tertiary = Color(0xFF8FB8FF),
+    onTertiary = Color(0xFF00203F),
+    tertiaryContainer = Color(0xFF1E2F4D),
+    onTertiaryContainer = Color(0xFFC9DDFF),
+
+    background = Color(0xFF121212),
+    onBackground = Color(0xFFFFFFFF),
+    surface = Color(0xFF121212),
+    onSurface = Color(0xFFFFFFFF),
+    surfaceVariant = Color(0xFF282828),
+    onSurfaceVariant = Color(0xFFB3B3B3),
+    surfaceTint = Color.Transparent,
+
+    surfaceContainerLowest = Color(0xFF0A0A0A),
+    surfaceContainerLow = Color(0xFF161616),
+    surfaceContainer = Color(0xFF1A1A1A),
+    surfaceContainerHigh = Color(0xFF242424),
+    surfaceContainerHighest = Color(0xFF2E2E2E),
+
+    outline = Color(0xFF727272),
+    outlineVariant = Color(0xFF3A3A3A)
+)
+
+private val LightColors = lightColorScheme(
+    primary = AccentLight,
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFFFDAD6),
+    onPrimaryContainer = Color(0xFF410002),
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
 
     secondary = Color(0xFF5F5F5F),
     onSecondary = Color(0xFFFFFFFF),

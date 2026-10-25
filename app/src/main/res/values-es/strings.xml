@@ -413,6 +413,7 @@
     <string name="lyr_status_error">Error: %1$s</string>
     <string name="lyr_status_idle">Aún sin consultar</string>
     <string name="lyr_status_skipped">No hizo falta (ya había letra)</string>
+<<<<<<< HEAD
     <string name="widget_description">Muestra la canción que suena, con botones de anterior, reproducir/pausar y siguiente.</string>
     <string name="widget_idle_title">Sin reproducción</string>
     <string name="widget_previous">Anterior</string>
@@ -420,4 +421,6 @@
     <string name="widget_next">Siguiente</string>
     <string name="download_favorites">Descargar favoritos</string>
     <string name="download_favorites_hint">Las canciones que guardes con el corazón o la estrella se descargan solas para escucharlas sin internet. Gasta datos si no estás en Wi-Fi.</string>
+=======
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
 </resources>

@@ -7,6 +7,7 @@ import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+<<<<<<< HEAD
 import com.lumodsound.app.R
 import com.lumodsound.app.str
 
@@ -32,6 +33,59 @@ object OpenRouterCatalog {
                 r.body?.string().orEmpty()
             }
             val data = JSONObject(body).optJSONArray("data") ?: throw IOException(str(R.string.empty_response))
+=======
+<<<<<<< HEAD
+import com.lumodsound.app.R
+import com.lumodsound.app.str
+
+data class OpenRouterModel(val id: String, val name: String, val free: Boolean)
+
+/** Catálogo público de OpenRouter (GET /api/v1/models, no necesita API key). Se guarda en memoria mientras la app esté abierta. */
+object OpenRouterCatalog {
+    private const val URL = "https://openrouter.ai/api/v1/models"
+
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
+
+    @Volatile private var cache: List<OpenRouterModel>? = null
+
+    suspend fun fetch(force: Boolean = false): List<OpenRouterModel> {
+        if (!force) cache?.let { return it }
+        return withContext(Dispatchers.IO) {
+            val req = Request.Builder().url(URL).header("User-Agent", "LumodSound/1.0 (proyecto personal)").build()
+            val body = client.newCall(req).execute().use { r ->
+                if (!r.isSuccessful) throw IOException("HTTP ${r.code}")
+                r.body?.string().orEmpty()
+            }
+            val data = JSONObject(body).optJSONArray("data") ?: throw IOException(str(R.string.empty_response))
+=======
+
+data class OpenRouterModel(val id: String, val name: String, val free: Boolean)
+
+/** Catálogo público de OpenRouter (GET /api/v1/models, no necesita API key). Se guarda en memoria mientras la app esté abierta. */
+object OpenRouterCatalog {
+    private const val URL = "https://openrouter.ai/api/v1/models"
+
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
+
+    @Volatile private var cache: List<OpenRouterModel>? = null
+
+    suspend fun fetch(force: Boolean = false): List<OpenRouterModel> {
+        if (!force) cache?.let { return it }
+        return withContext(Dispatchers.IO) {
+            val req = Request.Builder().url(URL).header("User-Agent", "LumodSound/1.0 (proyecto personal)").build()
+            val body = client.newCall(req).execute().use { r ->
+                if (!r.isSuccessful) throw IOException("HTTP ${r.code}")
+                r.body?.string().orEmpty()
+            }
+            val data = JSONObject(body).optJSONArray("data") ?: throw IOException("Respuesta vacía")
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
             val out = ArrayList<OpenRouterModel>(data.length())
             for (i in 0 until data.length()) {
                 val o = data.optJSONObject(i) ?: continue

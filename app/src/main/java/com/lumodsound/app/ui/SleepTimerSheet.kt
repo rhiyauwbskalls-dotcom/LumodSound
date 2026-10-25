@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.lumodsound.app.player.SleepTimer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+<<<<<<< HEAD
 import com.lumodsound.app.R
 import com.lumodsound.app.str
 
@@ -118,6 +119,181 @@ private fun ActiveRow(text: String, onCancel: () -> Unit) {
         TextButton(onClick = onCancel) {
             Icon(Icons.Default.TimerOff, contentDescription = null, modifier = Modifier.size(18.dp))
             Text(("  " + str(R.string.cancel)))
+=======
+<<<<<<< HEAD
+import com.lumodsound.app.R
+import com.lumodsound.app.str
+
+private val TimerOptionsMin = listOf(5, 15, 30, 45, 60, 90)
+
+/** Hoja para programar el temporizador de sueño (o ver cuánto falta y cancelarlo). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SleepTimerSheet(state: SleepTimer.State, onDismiss: () -> Unit) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    fun closeThen(action: () -> Unit) {
+        action()
+        scope.launch {
+            sheetState.hide()
+            onDismiss()
+        }
+    }
+
+    // Reloj para la cuenta atrás: solo corre mientras la hoja está abierta
+    var now by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
+    LaunchedEffect(state.endAtElapsedMs) {
+        while (true) {
+            now = SystemClock.elapsedRealtime()
+            delay(1_000L)
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color(0xFF0B0B0B),
+        contentColor = Color.White,
+        tonalElevation = 0.dp
+    ) {
+        Column(Modifier.navigationBarsPadding().padding(bottom = 12.dp)) {
+            Text(
+                str(R.string.timer),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+            )
+
+            when {
+                state.endAtElapsedMs > 0L -> {
+                    val remaining = (state.endAtElapsedMs - now).coerceAtLeast(0L)
+                    ActiveRow(str(R.string.music_will_stop_in, formatCountdown(remaining))) {
+                        closeThen { SleepTimer.cancel() }
+                    }
+                }
+                state.untilSongEnd -> ActiveRow(str(R.string.music_will_stop_when_this)) {
+                    closeThen { SleepTimer.cancel() }
+                }
+            }
+
+            TimerOptionsMin.forEach { min ->
+                OptionRow(
+                    label = if (min >= 60 && min % 60 == 0) "${min / 60} h" else str(R.string.minutes, min),
+                    selected = false
+                ) { closeThen { SleepTimer.startMinutes(min) } }
+            }
+            OptionRow(
+                label = str(R.string.when_the_song_ends),
+                selected = state.untilSongEnd
+            ) { closeThen { SleepTimer.startAtSongEnd() } }
+        }
+    }
+}
+
+@Composable
+private fun ActiveRow(text: String, onCancel: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 12.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White.copy(alpha = 0.85f),
+            modifier = Modifier.weight(1f)
+        )
+        TextButton(onClick = onCancel) {
+            Icon(Icons.Default.TimerOff, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(("  " + str(R.string.cancel)))
+=======
+
+private val TimerOptionsMin = listOf(5, 15, 30, 45, 60, 90)
+
+/** Hoja para programar el temporizador de sueño (o ver cuánto falta y cancelarlo). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SleepTimerSheet(state: SleepTimer.State, onDismiss: () -> Unit) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    fun closeThen(action: () -> Unit) {
+        action()
+        scope.launch {
+            sheetState.hide()
+            onDismiss()
+        }
+    }
+
+    // Reloj para la cuenta atrás: solo corre mientras la hoja está abierta
+    var now by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
+    LaunchedEffect(state.endAtElapsedMs) {
+        while (true) {
+            now = SystemClock.elapsedRealtime()
+            delay(1_000L)
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = Color(0xFF0B0B0B),
+        contentColor = Color.White,
+        tonalElevation = 0.dp
+    ) {
+        Column(Modifier.navigationBarsPadding().padding(bottom = 12.dp)) {
+            Text(
+                "Temporizador",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+            )
+
+            when {
+                state.endAtElapsedMs > 0L -> {
+                    val remaining = (state.endAtElapsedMs - now).coerceAtLeast(0L)
+                    ActiveRow("La música se detendrá en ${formatCountdown(remaining)}") {
+                        closeThen { SleepTimer.cancel() }
+                    }
+                }
+                state.untilSongEnd -> ActiveRow("La música se detendrá al terminar esta canción") {
+                    closeThen { SleepTimer.cancel() }
+                }
+            }
+
+            TimerOptionsMin.forEach { min ->
+                OptionRow(
+                    label = if (min >= 60 && min % 60 == 0) "${min / 60} h" else "$min minutos",
+                    selected = false
+                ) { closeThen { SleepTimer.startMinutes(min) } }
+            }
+            OptionRow(
+                label = "Al terminar la canción",
+                selected = state.untilSongEnd
+            ) { closeThen { SleepTimer.startAtSongEnd() } }
+        }
+    }
+}
+
+@Composable
+private fun ActiveRow(text: String, onCancel: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 12.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White.copy(alpha = 0.85f),
+            modifier = Modifier.weight(1f)
+        )
+        TextButton(onClick = onCancel) {
+            Icon(Icons.Default.TimerOff, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text("  Cancelar")
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
         }
     }
 }

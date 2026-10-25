@@ -47,6 +47,7 @@ import com.lumodsound.app.data.AlbumUi
 import com.lumodsound.app.data.SongUi
 import com.lumodsound.app.data.YtMusicApi
 import kotlin.math.abs
+<<<<<<< HEAD
 import com.lumodsound.app.R
 import com.lumodsound.app.str
 
@@ -135,6 +136,185 @@ fun ExploreContent(
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Text(
                     str(R.string.explore_all),
+=======
+<<<<<<< HEAD
+import com.lumodsound.app.R
+import com.lumodsound.app.str
+
+/**
+ * Lo que se ve en Buscar cuando no hay texto: "Explorar todo", la rejilla de estados de ánimo y géneros de
+ * YouTube Music (cada tarjeta con su color y la portada de una lista de esa categoría). Al tocar una
+ * tarjeta se abre la página de la categoría con sus listas.
+ */
+@Composable
+fun ExploreContent(
+    explore: ExploreState,
+    currentUrl: String?,
+    onLoad: (force: Boolean) -> Unit,
+    onNeedThumb: (YtMusicApi.ExploreCategory) -> Unit,
+    onCategoryClick: (YtMusicApi.ExploreCategory) -> Unit,
+    onBack: () -> Unit,
+    onSongClick: (List<SongUi>, Int) -> Unit,
+    onAlbumClick: (AlbumUi) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LaunchedEffect(Unit) { onLoad(false) }
+
+    val selected = explore.selected
+    if (selected != null) {
+        Column(modifier.fillMaxSize()) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = str(R.string.back))
+                }
+                Text(
+                    selected.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            when {
+                explore.shelvesLoading -> Center { CircularProgressIndicator() }
+                explore.shelvesFailed -> Center {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+                        Text(
+                            str(R.string.couldn_t_load_this_category),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Button(onClick = { onCategoryClick(selected) }) { Text(str(R.string.retry)) }
+                    }
+                }
+                else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp + LocalBarsBottomInset.current)) {
+                    items(explore.shelves, key = { it.id }) { shelf ->
+                        ShelfSection(shelf, currentUrl, onSongClick, {}, {}, onAlbumClick)
+                    }
+                }
+            }
+        }
+        return
+    }
+
+    when {
+        explore.loading || (explore.categories.isEmpty() && !explore.failed) ->
+            Center(modifier) { CircularProgressIndicator() }
+
+        explore.failed -> Center(modifier) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+                Text(
+                    str(R.string.couldn_t_load_the_categories),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(12.dp))
+                Button(onClick = { onLoad(true) }) { Text(str(R.string.retry)) }
+            }
+        }
+
+        else -> LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp + LocalBarsBottomInset.current),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = modifier.fillMaxSize()
+        ) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Text(
+                    str(R.string.explore_all),
+=======
+
+/**
+ * Lo que se ve en Buscar cuando no hay texto: "Explorar todo", la rejilla de estados de ánimo y géneros de
+ * YouTube Music (cada tarjeta con su color y la portada de una lista de esa categoría). Al tocar una
+ * tarjeta se abre la página de la categoría con sus listas.
+ */
+@Composable
+fun ExploreContent(
+    explore: ExploreState,
+    currentUrl: String?,
+    onLoad: (force: Boolean) -> Unit,
+    onNeedThumb: (YtMusicApi.ExploreCategory) -> Unit,
+    onCategoryClick: (YtMusicApi.ExploreCategory) -> Unit,
+    onBack: () -> Unit,
+    onSongClick: (List<SongUi>, Int) -> Unit,
+    onAlbumClick: (AlbumUi) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LaunchedEffect(Unit) { onLoad(false) }
+
+    val selected = explore.selected
+    if (selected != null) {
+        Column(modifier.fillMaxSize()) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                }
+                Text(
+                    selected.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            when {
+                explore.shelvesLoading -> Center { CircularProgressIndicator() }
+                explore.shelvesFailed -> Center {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+                        Text(
+                            "No se pudo cargar esta categoría.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Button(onClick = { onCategoryClick(selected) }) { Text("Reintentar") }
+                    }
+                }
+                else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+                    items(explore.shelves, key = { it.id }) { shelf ->
+                        ShelfSection(shelf, currentUrl, onSongClick, {}, {}, onAlbumClick)
+                    }
+                }
+            }
+        }
+        return
+    }
+
+    when {
+        explore.loading || (explore.categories.isEmpty() && !explore.failed) ->
+            Center(modifier) { CircularProgressIndicator() }
+
+        explore.failed -> Center(modifier) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+                Text(
+                    "No se pudieron cargar las categorías.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(12.dp))
+                Button(onClick = { onLoad(true) }) { Text("Reintentar") }
+            }
+        }
+
+        else -> LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = modifier.fillMaxSize()
+        ) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Text(
+                    "Explorar todo",
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
+>>>>>>> branch 'main' of https://github.com/rhiyauwbskalls-dotcom/LumodSound
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
